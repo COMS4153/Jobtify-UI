@@ -32,11 +32,12 @@ const ApplicationsPage = () => {
         {applications.map((application) => (
           <li
             key={application.applicationId}
-            className="list-group-item"
+            className="list-group-item list-group-item-action"
             onClick={() => viewJobDetail(application.applicationId)}
             style={{ cursor: 'pointer' }}
           >
-            Application ID: {application.applicationId}, Status: {application.applicationStatus}
+            <strong>Application ID:</strong> {application.applicationId} <br />
+            <strong>Status:</strong> {application.applicationStatus}
           </li>
         ))}
       </ul>

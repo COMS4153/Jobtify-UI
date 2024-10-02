@@ -24,13 +24,17 @@ const JobDetailPage = () => {
     <div className="container mt-5">
       {error && <div className="alert alert-danger">{error}</div>}
       {jobDetail && (
-        <>
-          <h2>{jobDetail.jobTitle}</h2>
-          <p><strong>Company:</strong> {jobDetail.company}</p>
-          <p><strong>Description:</strong> {jobDetail.description}</p>
-          <p><strong>Location:</strong> {jobDetail.officeLocation}</p>
-          <p><strong>Salary:</strong> ${jobDetail.minSalary} - ${jobDetail.maxSalary}</p>
-        </>
+        <div className="card">
+          <div className="card-header">
+            <h2>{jobDetail.jobTitle}</h2>
+          </div>
+          <div className="card-body">
+            <p><strong>Company:</strong> {jobDetail.company}</p>
+            <p><strong>Description:</strong> {jobDetail.description}</p>
+            <p><strong>Location:</strong> {jobDetail.officeLocation}</p>
+            <p><strong>Salary:</strong> ${jobDetail.minSalary} - ${jobDetail.maxSalary}</p>
+          </div>
+        </div>
       )}
     </div>
   );
