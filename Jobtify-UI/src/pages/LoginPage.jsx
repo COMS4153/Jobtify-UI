@@ -11,7 +11,8 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8080/api/user/login', {
+      // const response = await axios.post('http://18.118.161.48:8080/api/user/login', {
+        const response = await axios.post('http://localhost:8080/api/user/login', {
         email,
         password,
       });
@@ -59,6 +60,14 @@ const LoginPage = () => {
                   Login
                 </button>
               </form>
+              <div className="text-center mt-3">
+                <button
+                  className="btn btn-link"
+                  onClick={() => navigate('/signup')}
+                >
+                  Sign Up
+                </button>
+              </div>
             </div>
           </div>
         </div>

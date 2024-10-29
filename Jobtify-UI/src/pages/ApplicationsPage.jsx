@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css'; // 确保引入Bootstrap样式
+import { FaEye } from 'react-icons/fa'; // 引入图标库
 
 const ApplicationsPage = () => {
   const { userId } = useParams();
@@ -26,21 +28,28 @@ const ApplicationsPage = () => {
 
   return (
     <div className="container mt-5">
-      <h2>Job Applications</h2>
+      <h2>Your Applications</h2>
       {error && <div className="alert alert-danger">{error}</div>}
-      <ul className="list-group">
+      <div className="row">
         {applications.map((application) => (
-          <li
-            key={application.applicationId}
-            className="list-group-item list-group-item-action"
-            onClick={() => viewJobDetail(application.applicationId)}
-            style={{ cursor: 'pointer' }}
-          >
-            <strong>Application ID:</strong> {application.applicationId} <br />
-            <strong>Status:</strong> {application.applicationStatus}
-          </li>
+          <div className="col-md-4 mb-3" key={application.applicationId}>
+            <div className="card shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title">Application ID: {application.applicationId}</h5>
+                <p className="card-text">
+                  <strong>Status:</strong> {application.applicationStatus}
+                </p>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => viewJobDetail(application.applicationId)}
+                >
+                  <FaEye className="me-1" /> View Job Details
+                </button>
+              </div>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };
