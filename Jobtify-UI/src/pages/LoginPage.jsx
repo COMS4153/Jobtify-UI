@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -11,15 +11,25 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // const response = await axios.post('http://18.118.161.48:8080/api/user/login', {
-        const response = await axios.post('http://localhost:8080/api/user/login', {
-        email,
-        password,
-      });
-      const { user, applications } = response.data;
-      localStorage.setItem('user', JSON.stringify(user)); // Save user data
-      localStorage.setItem('applications', JSON.stringify(applications)); // Save applications
-      navigate(`/applications/${user.userId}`); // Navigate to applications page
+      // 使用 URLSearchParams 将数据转换为 x-www-form-urlencoded 格式
+      const data = new URLSearchParams();
+      data.append('username', username);
+      data.append('password', password);
+
+      const response = await axios.post(
+        'http://3.16.10.86:8080/api/users/login',
+        data,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
+      );
+
+
+      localStorage.setItem('user', JSON.stringify(response.data.id)); // Save user data
+      // localStorage.setItem('applications', JSON.stringify(applications)); // Save applications
+      navigate(`/applications/${response.data.id}`); // Navigate to applications page
     } catch (err) {
       setError('Invalid credentials, please try again.');
     }
@@ -37,12 +47,12 @@ const LoginPage = () => {
               {error && <div className="alert alert-danger">{error}</div>}
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <label className="form-label">Email</label>
+                  <label className="form-label">Username</label>
                   <input
-                    type="email"
+                    type="text"
                     className="form-control"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     required
                   />
                 </div>
