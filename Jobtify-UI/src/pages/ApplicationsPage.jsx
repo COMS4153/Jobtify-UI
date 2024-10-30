@@ -14,8 +14,8 @@ const ApplicationsPage = () => {
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        // const response = await axios.get(`http://localhost:8080/api/application/user/${userId}/applications`);
-        const response = await axios.get(`http://localhost:8080/api/application/user/1/applications`);
+        const response = await axios.get(`http://localhost:8080/api/application/user/${userId}/applications`);
+        // const response = await axios.get(`http://localhost:8080/api/application/user/1/applications`);
         setApplications(response.data);
 
         // 获取所有 jobIds 以便批量获取公司名称

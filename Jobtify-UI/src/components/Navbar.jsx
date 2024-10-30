@@ -3,11 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user')); // 从 localStorage 获取用户信息
+  const UserID = JSON.parse(localStorage.getItem('UserID')); // 从 localStorage 获取用户信息
 
   const handleSignOut = () => {
     // 清除用户的身份验证信息
-    localStorage.removeItem('user');
+    localStorage.removeItem('UserID');
     localStorage.removeItem('applications');
 
     // 重定向到登录页面
@@ -15,7 +15,7 @@ const Navbar = () => {
   };
 
   // 只有在用户存在时才显示导航栏
-  if (!user) return null;
+  if (!UserID) return null;
 
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
@@ -27,7 +27,7 @@ const Navbar = () => {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav">
             <li className="nav-item">
-              <Link className="nav-link" to={`/applications/${user.userId}`}>Applications</Link>
+              <Link className="nav-link" to={`/applications/${UserID}`}>Applications</Link>
             </li>
             <li className="nav-item">
               <Link className="nav-link" to="/jobs">Jobs</Link>

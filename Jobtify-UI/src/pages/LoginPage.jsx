@@ -11,23 +11,14 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // 使用 URLSearchParams 将数据转换为 x-www-form-urlencoded 格式
-      const data = new URLSearchParams();
-      data.append('username', username);
-      data.append('password', password);
-
-      const response = await axios.post(
-        'http://3.16.10.86:8080/api/users/login',
-        data,
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
+      const response = await axios.post('http://3.16.10.86:8080/api/users/login', {
+          username,
+          password
         }
       );
 
-
-      localStorage.setItem('user', JSON.stringify(response.data.id)); // Save user data
+      localStorage.setItem('UserID', JSON.stringify(response.data.id)); // Save user data
+      console.log(localStorage.getItem('UserID'))
       // localStorage.setItem('applications', JSON.stringify(applications)); // Save applications
       navigate(`/applications/${response.data.id}`); // Navigate to applications page
     } catch (err) {

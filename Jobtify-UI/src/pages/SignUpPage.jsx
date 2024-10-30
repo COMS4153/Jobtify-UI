@@ -21,12 +21,12 @@ const SignUpPage = () => {
       return;
     }
     try {
-      const response = await axios.post('http://localhost:8080/api/user/signup', {
-        firstName,
-        lastName,
+      const username = firstName.concat(" ", lastName)
+      const response = await axios.post('http://3.16.10.86:8080/api/users/register', {
+        username,
         email,
         password,
-        dob, // 包含生日字段
+        // dob, // 包含生日字段
       });
       navigate('/login');
     } catch (err) {
