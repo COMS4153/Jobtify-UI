@@ -3,19 +3,22 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css'; // 确保引入Bootstrap样式
 import { FaEye } from 'react-icons/fa'; // 引入图标库
+import { Button, Spinner } from 'react-bootstrap';
 
 const ApplicationsPage = () => {
   const { userId } = useParams();
   const [applications, setApplications] = useState([]);
   const [companyNames, setCompanyNames] = useState({});
+  const [salary, setSalary] = useState({})
   const [error, setError] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [loadingIds, setLoadingIds] = useState({}); // 跟踪哪个按钮在加载
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/application/user/${userId}/applications`);
+        const response = await axios.get(`http://18.118.161.48:8080/api/application/user/${userId}/applications`);
         // const response = await axios.get(`http://localhost:8080/api/application/user/1/applications`);
         setApplications(response.data);
 
@@ -25,22 +28,29 @@ const ApplicationsPage = () => {
         const jobIds = response.data.map((app) => app.jobId);
 
         // 为每个 jobId 获取公司名称
-        const companyRequests = jobIds.map((jobId) =>
+        const jobRequests = jobIds.map((jobId) =>
           axios.get(`http://54.90.234.55:8080/api/jobs/${jobId}`)
-            .then((res) => ({ jobId, companyName: res.data.company }))
+            .then((res) => ({ jobId, companyName: res.data.company, salary: res.data.salary }))
             .catch((err) => {
               console.error(`Failed to fetch company for jobId ${jobId}`, err);
               return null;
             })
         );
 
-        const companyData = await Promise.all(companyRequests);
-        const namesMapping = companyData.reduce((acc, curr) => {
+        const jobData = await Promise.all(jobRequests);
+        const namesMapping = jobData.reduce((acc, curr) => {
           if (curr) acc[curr.jobId] = curr.companyName;
           return acc;
         }, {});
+        const salariesMapping = {};
+        jobData.forEach((data) => {
+          if (data) {
+            salariesMapping[data.jobId] = data.salary;
+          }
+        });
         
         setCompanyNames(namesMapping);
+        setSalary(salariesMapping);
       } catch (err) {
         setError('Error fetching applications.');
       }
@@ -53,20 +63,19 @@ const ApplicationsPage = () => {
   };
 
   const deleteApplication = async (applicationId) => {
+    // 设置当前 applicationId 的加载状态为 true
+    setLoadingIds((prev) => ({ ...prev, [applicationId]: true }));
     try {
-      await axios.delete(`http://localhost:8080/api/application/applications/${applicationId}`);
+      await axios.delete(`http://18.118.161.48:8080/api/application/applications/${applicationId}`);
       setApplications(applications.filter((app) => app.applicationId != applicationId));
       setShowToast(true);
       setTimeout(() => {setShowToast(false)}, 3000);
+      setLoadingIds((prev) => ({ ...prev, [applicationId]: false }));
     } catch (err) {
       setError('Error deleting application');
+      setLoadingIds((prev) => ({ ...prev, [applicationId]: false }));
     }
   };
-
-  const testToast = () => {
-    setShowToast(true);
-    setTimeout(() => {setShowToast(false)}, 3000);
-  }
 
   return (
     <div className="container mt-5">
@@ -85,15 +94,34 @@ const ApplicationsPage = () => {
                   Company: {companyNames[application.jobId] || 'Unavailable'}
                 </h5>
                 <p className="card-text">
+                  <strong>Annual Salary:</strong> {salary[application.jobId] ? salary[application.jobId] : 'Unknown'} 
+                  <br/>
                   <strong>Status:</strong> {application.applicationStatus} 
                   <br/>
                   <strong>Application time:</strong> {application.timeOfApplication} 
                   <br/>
                   <strong>Notes:</strong> {application.notes}
                 </p>
-                <button type="button" class="btn btn-danger float-end" onClick={() => deleteApplication(application.applicationId)}>
-                  Delete
-                </button>
+                <Button
+                  variant="danger"
+                  className="float-end"
+                  onClick={() => deleteApplication(application.applicationId)}
+                  disabled={loadingIds[application.applicationId]} // 检查当前按钮是否加载中
+                >
+                  {loadingIds[application.applicationId] ? (
+                    <>
+                      <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                      /> Deleting...
+                    </>
+                  ) : (
+                    "Delete"
+                  )}
+                </Button>
                 <button
                   className="btn btn-primary float-end me-2"
                   onClick={() => viewJobDetail(application.applicationId)}
