@@ -47,7 +47,7 @@ const Jobs = () => {
 
       // 发送 POST 请求到后端 API
       const response = await axios.post(
-        `http://localhost:8080/api/application/${userId}/${selectedJob.jobId}/applications`,
+        `http://18.118.161.48:8080/api/application/${userId}/${selectedJob.jobId}/applications`,
         {
           timeOfApplication,
           applicationStatus,
