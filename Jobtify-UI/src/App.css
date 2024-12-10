@@ -62,3 +62,8 @@ h2 {
   bottom: 0;
   width: 100%;
 }
+
+#map {
+  height: 250px; /* The height is 400 pixels */
+  width: 100%; /* The width is the width of the web page */
+}

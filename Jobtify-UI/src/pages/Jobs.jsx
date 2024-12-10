@@ -29,6 +29,17 @@ const Jobs = () => {
     fetchJobs();
   }, []);
 
+  useEffect(() => {
+    if (showModal && selectedJob) {
+      initMap();
+    }
+
+    return () => {
+      // Clean up code
+      map = null;
+    };
+  }, [showModal, selectedJob]);
+
   const openModal = (job) => {
     setSelectedJob(job); // 设置选中的工作信息
     setShowModal(true); // 显示模态框
@@ -62,7 +73,8 @@ const Jobs = () => {
     } catch (error) {
       console.error("Error creating application:", error);
       if (error.response && error.response.status === 404) {
-        console.error("Invalid Input");
+        // console.error("Invalid Input");
+        alert("Please verify user id and job id are correct");
       }
     }
   };
@@ -79,6 +91,38 @@ const Jobs = () => {
       closeModal();
     }, 1500);
   };
+
+  // Initialize and add the map
+  let map;
+
+  async function initMap() {
+    const mapElement = document.getElementById("map");
+    if (!mapElement) {
+      console.error("Map element not found");
+      return;
+    }
+
+    // The location of Uluru
+    const position = { lat: selectedJob.latitude, lng: selectedJob.longitude };
+    // Request needed libraries.
+    //@ts-ignore
+    const { Map } = await google.maps.importLibrary("maps");
+    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+    // The map, centered at Uluru
+    map = new Map(document.getElementById("map"), {
+      zoom: 4,
+      center: position,
+      mapId: "DEMO_MAP_ID",
+    });
+
+    // The marker, positioned at Uluru
+    const marker = new AdvancedMarkerElement({
+      map: map,
+      position: position,
+      title: "Uluru",
+    });
+  }
 
   return (
     <div className="container mt-5">
@@ -130,6 +174,7 @@ const Jobs = () => {
               <p><strong>Description:</strong> {selectedJob.description}</p>
               <p><strong>Salary:</strong> ${selectedJob.salary.toLocaleString()}</p>
               <p><strong>Location:</strong> {selectedJob.location}</p>
+              <div id="map"></div>
               <p><strong>Industry:</strong> {selectedJob.industry}</p>
               <div className="form-group">
                 <label><strong>Notes:</strong></label>
@@ -137,7 +182,7 @@ const Jobs = () => {
                   className="form-control"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  rows="5" // 设置为较高的高度以容纳更多文本
+                  rows="5" 
                   placeholder="Enter your notes here..."
                 ></textarea>
               </div>

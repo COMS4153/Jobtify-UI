@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { GoogleLogin } from '@react-oauth/google';
+import jwtDecode from 'jwt-decode';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -11,7 +13,7 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://3.16.10.86:8080/api/users/login', {
+      const response = await axios.post('http://13.58.61.231:8080/api/users/login', {
           username,
           password
         }
@@ -24,6 +26,29 @@ const LoginPage = () => {
     } catch (err) {
       setError('Invalid credentials, please try again.');
     }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      console.log(credentialResponse)
+      const decoded = jwtDecode(credentialResponse.credential);
+      console.log('Google User:', decoded);
+      // 将ID Token发送到后端进行验证和登录
+      // const response = await axios.post('http://13.58.61.231:8080/api/users/google-login', {
+      //   token: credentialResponse.credential
+      // });
+
+      // localStorage.setItem('UserID', JSON.stringify(response.data.id));
+      // navigate(`/applications/${response.data.id}`);
+    } catch (err) {
+      console.error('Google Sign-In Error:', err);
+      setError('Google Sign-In failed. Please try again.');
+    }
+  };
+
+  const handleGoogleFailure = (error) => {
+    console.error('Google Sign-In Failed:', error);
+    setError('Google Sign-In failed. Please try again.');
   };
 
   return (
@@ -68,6 +93,12 @@ const LoginPage = () => {
                 >
                   Sign Up
                 </button>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleFailure}
+                  useOneTap
+                  className="mt-3 w-100"
+                />
               </div>
             </div>
           </div>

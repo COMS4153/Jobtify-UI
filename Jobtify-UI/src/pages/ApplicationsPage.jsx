@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css'; // 确保引入Bootstrap样式
 import { FaEye } from 'react-icons/fa'; // 引入图标库
-import { Button, Spinner } from 'react-bootstrap';
+import { Modal, Button, Spinner } from 'react-bootstrap';
 
 const ApplicationsPage = () => {
   const { userId } = useParams();
@@ -12,7 +12,12 @@ const ApplicationsPage = () => {
   const [salary, setSalary] = useState({})
   const [error, setError] = useState('');
   const [showToast, setShowToast] = useState(false);
-  const [loadingIds, setLoadingIds] = useState({}); // 跟踪哪个按钮在加载
+  const [loadingIds, setLoadingIds] = useState({}); // delete loading spinner
+  const [selectedApplication, setSelectedApplication] = useState(null); // 选中的申请信息
+  const [selectedJob, setSelectedJob] = useState(null); // 选中的工作信息
+  const [showModal, setShowModal] = useState(false); // 控制 Modal 的显示
+  const [loading, setLoading] = useState(false); // update loading spinner
+  const [notes, setNotes] = useState(''); // Notes 文本
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,9 +63,38 @@ const ApplicationsPage = () => {
     fetchApplications();
   }, [userId]);
 
-  const viewJobDetail = (applicationId) => {
-    navigate(`/application/${applicationId}/job`);
+  useEffect(() => {
+    if (showModal && selectedApplication && selectedJob) {
+      initMap();
+    }
+
+    return () => {
+      // Clean up code
+      map = null;
+    };
+  }, [showModal, selectedApplication]);
+
+  useEffect(() => {
+    if (selectedApplication) {
+      jobDetailFetch();
+    }
+  }, [selectedApplication]); // 当 selectedApplication 改变时运行  
+
+  const openModal = (application) => {
+    setSelectedApplication(application); // 设置选中的工作信息
+    setNotes(application.notes);
+    // jobDetailFetch();
+    setShowModal(true); // 显示模态框
   };
+
+  const closeModal = () => {
+    setShowModal(false); // 关闭模态框
+    setNotes(''); // 清空 Notes 字段
+  };
+
+  // const viewJobDetail = (applicationId) => {
+  //   navigate(`/application/${applicationId}/job`);
+  // };
 
   const deleteApplication = async (applicationId) => {
     // 设置当前 applicationId 的加载状态为 true
@@ -74,8 +108,100 @@ const ApplicationsPage = () => {
     } catch (err) {
       setError('Error deleting application');
       setLoadingIds((prev) => ({ ...prev, [applicationId]: false }));
+      if (err.response && err.response.status === 404) {
+        alert("Application not found");
+      }
     }
   };
+
+  const jobDetailFetch = async() => {
+    try {
+      await axios.get(`http://54.90.234.55:8080/api/jobs/${selectedApplication.jobId}`)
+      .then((res) => {
+        setSelectedJob(res.data)
+      })
+      .catch((err) => {
+        console.error(`Failed to fetch company for jobId ${selectedApplication.jobId}`, err);
+        return null;
+      })
+    } catch (err) {
+      setError('Error fetching job detail');
+    }
+  }
+
+  const jobApplicationUpdate = async () => {
+    try {
+      // 设定申请的时间、状态和备注
+      const timeOfApplication = new Date().toISOString();
+      const applicationStatus = "applied";
+
+      // 发送 POST 请求到后端 API
+      const response = await axios.post(
+        `http://18.118.161.48:8080/api/application/${userId}/${selectedJob.jobId}/applications`,
+        {
+          timeOfApplication,
+          applicationStatus,
+          notes,
+        }
+      );
+
+      if (response.status === 201) {
+        console.log("Application created successfully!");
+        // 可在这里添加进一步的逻辑，例如展示通知
+      }
+    } catch (error) {
+      console.error("Error creating application:", error);
+      if (error.response && error.response.status === 404) {
+        // console.error("Invalid Input");
+        alert("Please verify user id and job id are correct");
+      }
+    }
+  };
+
+  const updateApplication = async () => {
+    setLoading(true); // 开始加载
+    await jobApplicationUpdate();
+    setTimeout(() => {
+      setLoading(false); // 停止加载
+      setShowToast(true);
+      setTimeout(() => {setShowToast(false)}, 3000);
+      // navigate(`/applications/${userId}`)
+      // 关闭模态框
+      closeModal();
+    }, 1500);
+  };
+
+  // Initialize and add the map
+  let map;
+
+  async function initMap() {
+    const mapElement = document.getElementById("map");
+    if (!mapElement) {
+      console.error("Map element not found");
+      return;
+    }
+
+    // The location of Uluru
+    const position = { lat: -25.344, lng: 131.031 };
+    // Request needed libraries.
+    //@ts-ignore
+    const { Map } = await google.maps.importLibrary("maps");
+    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+    // The map, centered at Uluru
+    map = new Map(document.getElementById("map"), {
+      zoom: 4,
+      center: position,
+      mapId: "DEMO_MAP_ID",
+    });
+
+    // The marker, positioned at Uluru
+    const marker = new AdvancedMarkerElement({
+      map: map,
+      position: position,
+      title: "Uluru",
+    });
+  }
 
   return (
     <div className="container mt-5">
@@ -124,7 +250,7 @@ const ApplicationsPage = () => {
                 </Button>
                 <button
                   className="btn btn-primary float-end me-2"
-                  onClick={() => viewJobDetail(application.applicationId)}
+                  onClick={() => openModal(application)}
                 >
                   <FaEye className="me-1" /> View
                 </button>
@@ -133,6 +259,71 @@ const ApplicationsPage = () => {
           </div>
         ))}
       </div>
+
+
+      <Modal show={showModal} onHide={closeModal} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Job Details</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedJob && (
+            <>
+              <p><strong>Company:</strong> {selectedJob.company}</p>
+              <p><strong>Title:</strong> {selectedJob.title}</p>
+              <p><strong>Description:</strong> {selectedJob.description}</p>
+              <p><strong>Salary:</strong> ${selectedJob.salary.toLocaleString()}</p>
+              <p><strong>Location:</strong> {selectedJob.location}</p>
+              <div id="map"></div>
+              <p><strong>Industry:</strong> {selectedJob.industry}</p>
+              <div className="form-group">
+                <div class="btn-group">
+                  <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    Application Status
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">applied</a></li>
+                    <li><a class="dropdown-item" href="#">interviewing</a></li>
+                    <li><a class="dropdown-item" href="#">offered</a></li>
+                    <li><a class="dropdown-item" href="#">archived</a></li>
+                    <li><a class="dropdown-item" href="#">screening</a></li>
+                    <li><a class="dropdown-item" href="#">rejected</a></li>
+                    <li><a class="dropdown-item" href="#">withdraw</a></li>
+                  </ul>
+                </div>
+                <label><strong>Notes:</strong></label>
+                <textarea
+                  className="form-control"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows="5" 
+                  placeholder="Enter your notes here..."
+                > {selectedApplication.notes} </textarea>
+              </div>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeModal}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={updateApplication} disabled={loading}>
+            {loading ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                />{" "}
+                Applying...
+              </>
+            ) : (
+              "Confirm Apply"
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
       
 
       <div

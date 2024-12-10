@@ -22,7 +22,7 @@ const SignUpPage = () => {
     }
     try {
       const username = firstName.concat(" ", lastName)
-      const response = await axios.post('http://3.16.10.86:8080/api/users/register', {
+      const response = await axios.post('http://13.58.61.231:8080/api/users/register', {
         username,
         email,
         password,
