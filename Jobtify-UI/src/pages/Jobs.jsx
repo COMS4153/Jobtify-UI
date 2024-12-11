@@ -52,6 +52,7 @@ const Jobs = () => {
 
   const jobApplication = async () => {
     try {
+      console.log(111111111);
       // 设定申请的时间、状态和备注
       const timeOfApplication = new Date().toISOString();
       const applicationStatus = "applied";

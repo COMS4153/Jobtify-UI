@@ -14,13 +14,15 @@ const App = () => {
     <GoogleOAuthProvider clientId="980242448046-qrve5hbo75iqfpp0q33uhtbud4hutped.apps.googleusercontent.com">
       <Router>
       <Navbar /> {/* 添加导航栏组件 */}
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/applications" element={<ApplicationsPage />} />
-        <Route path="/jobs" element={<Jobs />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
+      <div className="main-content">
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/applications" element={<ApplicationsPage />} />
+          <Route path="/jobs" element={<Jobs />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </div>
       <footer className="footer" style={{
           fontSize: '0.8rem',       // 调整字体大小
           padding: '0px',
