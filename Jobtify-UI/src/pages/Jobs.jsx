@@ -21,7 +21,7 @@ const Jobs = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await axios.get('http://54.90.234.55:8080/api/jobs');
+        const response = await axios.get('http://54.90.234.55:8080/api/jobs?size=100');
         setJobs(response.data.content);
       } catch (err) {
         setError('Error fetching jobs');
