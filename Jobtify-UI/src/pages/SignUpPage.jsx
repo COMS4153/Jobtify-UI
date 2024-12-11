@@ -28,7 +28,7 @@ const SignUpPage = () => {
         password,
         // dob, // 包含生日字段
       });
-      navigate('/login');
+      navigate('/');
     } catch (err) {
       setError('An error occurred during signup. Please try again.');
     }
@@ -117,7 +117,7 @@ const SignUpPage = () => {
               <div className="text-center mt-3">
                 <button
                   className="btn btn-link"
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate('/')}
                 >
                   Already have an account? Login
                 </button>

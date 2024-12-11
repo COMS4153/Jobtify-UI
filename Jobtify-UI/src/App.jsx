@@ -6,8 +6,8 @@ import Navbar from './components/Navbar';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import ApplicationsPage from './pages/ApplicationsPage';
-import JobDetailPage from './pages/JobDetailPage';
 import Jobs from './pages/Jobs';
+import Dashboard from './pages/Dashboard';
 
 const App = () => {
   return (
@@ -15,11 +15,11 @@ const App = () => {
       <Router>
       <Navbar /> {/* 添加导航栏组件 */}
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/applications/:userId" element={<ApplicationsPage />} />
-        <Route path="/application/:applicationId/job" element={<JobDetailPage />} />
-        <Route path="jobs" element={<Jobs />} />
+        <Route path="/applications" element={<ApplicationsPage />} />
+        <Route path="/jobs" element={<Jobs />} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
       <footer className="footer" style={{
           fontSize: '0.8rem',       // 调整字体大小

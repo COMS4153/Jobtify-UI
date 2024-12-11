@@ -4,11 +4,14 @@ import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
 import jwtDecode from 'jwt-decode';
 
+
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  const user_service_url = 'http://13.58.61.231:8080';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,9 +23,8 @@ const LoginPage = () => {
       );
 
       localStorage.setItem('UserID', JSON.stringify(response.data.id)); // Save user data
-      console.log(localStorage.getItem('UserID'))
       // localStorage.setItem('applications', JSON.stringify(applications)); // Save applications
-      navigate(`/applications/${response.data.id}`); // Navigate to applications page
+      navigate(`/applications`); // Navigate to applications page
     } catch (err) {
       setError('Invalid credentials, please try again.');
     }
@@ -30,13 +32,22 @@ const LoginPage = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      console.log(credentialResponse)
-      const decoded = jwtDecode(credentialResponse.credential);
+      console.log("credentialResponse: " + credentialResponse)
+      console.log("credentialResponse.credential: " + credentialResponse.credential)
+      const idToken = credentialResponse.credential;
+      const decoded = jwtDecode(idToken);
       console.log('Google User:', decoded);
-      // 将ID Token发送到后端进行验证和登录
-      // const response = await axios.post('http://13.58.61.231:8080/api/users/google-login', {
-      //   token: credentialResponse.credential
-      // });
+      
+      // Send ID Token to backend for authentication and login
+      const response = await axios.post(`${user_service_url}/api/users/google-login`, {
+        idToken: idToken
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log(response)
 
       // localStorage.setItem('UserID', JSON.stringify(response.data.id));
       // navigate(`/applications/${response.data.id}`);

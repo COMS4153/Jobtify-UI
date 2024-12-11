@@ -3,10 +3,13 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css'; // 确保引入Bootstrap样式
 import { FaEye } from 'react-icons/fa'; // 引入图标库
-import { Modal, Button, Spinner } from 'react-bootstrap';
+import { Modal, Button, Spinner, Dropdown } from 'react-bootstrap';
 
 const ApplicationsPage = () => {
-  const { userId } = useParams();
+  const [userId, setUserId] = useState(() => {
+    const storedUserId = localStorage.getItem('UserID');
+    return storedUserId ? JSON.parse(storedUserId) : '';
+  });
   const [applications, setApplications] = useState([]);
   const [companyNames, setCompanyNames] = useState({});
   const [salary, setSalary] = useState({})
@@ -18,7 +21,15 @@ const ApplicationsPage = () => {
   const [showModal, setShowModal] = useState(false); // 控制 Modal 的显示
   const [loading, setLoading] = useState(false); // update loading spinner
   const [notes, setNotes] = useState(''); // Notes 文本
+  const [selectedStatus, setSelectedStatus] = useState("Application Status");
   const navigate = useNavigate();
+
+  // useEffect(() => {
+  //   const storedUserId = localStorage.getItem('UserID');
+  //   if (storedUserId) {
+  //     setUserId(JSON.parse(storedUserId));
+  //   }
+  // }, []);
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -72,7 +83,7 @@ const ApplicationsPage = () => {
       // Clean up code
       map = null;
     };
-  }, [showModal, selectedApplication]);
+  }, [showModal, selectedApplication, selectedJob]);
 
   useEffect(() => {
     if (selectedApplication) {
@@ -82,6 +93,7 @@ const ApplicationsPage = () => {
 
   const openModal = (application) => {
     setSelectedApplication(application); // 设置选中的工作信息
+    setSelectedStatus(application.applicationStatus)
     setNotes(application.notes);
     // jobDetailFetch();
     setShowModal(true); // 显示模态框
@@ -131,32 +143,27 @@ const ApplicationsPage = () => {
 
   const jobApplicationUpdate = async () => {
     try {
-      // 设定申请的时间、状态和备注
       const timeOfApplication = new Date().toISOString();
-      const applicationStatus = "applied";
-
-      // 发送 POST 请求到后端 API
-      const response = await axios.post(
-        `http://18.118.161.48:8080/api/application/${userId}/${selectedJob.jobId}/applications`,
-        {
-          timeOfApplication,
-          applicationStatus,
-          notes,
-        }
-      );
-
-      if (response.status === 201) {
-        console.log("Application created successfully!");
+      const applicationStatus = selectedStatus;
+      console.log(applicationStatus)
+  
+      // 构造请求URL
+      const url = `http://18.118.161.48:8080/api/application/applications/${selectedApplication.applicationId}?status=${applicationStatus}&notes=${notes}&timeOfApplication=${timeOfApplication}`;
+      console.log(url);
+      // 发送 PUT 请求到后端 API
+      const response = await axios.put(url);
+  
+      if (response.status === 200) {
+        console.log("Application updated successfully!");
         // 可在这里添加进一步的逻辑，例如展示通知
       }
     } catch (error) {
-      console.error("Error creating application:", error);
+      console.error("Error updating application:", error);
       if (error.response && error.response.status === 404) {
-        // console.error("Invalid Input");
-        alert("Please verify user id and job id are correct");
+        alert("Application not found. Please check the application ID.");
       }
     }
-  };
+  };  
 
   const updateApplication = async () => {
     setLoading(true); // 开始加载
@@ -182,7 +189,7 @@ const ApplicationsPage = () => {
     }
 
     // The location of Uluru
-    const position = { lat: -25.344, lng: 131.031 };
+    const position = { lat: selectedJob.latitude, lng: selectedJob.longitude };
     // Request needed libraries.
     //@ts-ignore
     const { Map } = await google.maps.importLibrary("maps");
@@ -190,7 +197,7 @@ const ApplicationsPage = () => {
 
     // The map, centered at Uluru
     map = new Map(document.getElementById("map"), {
-      zoom: 4,
+      zoom: 8,
       center: position,
       mapId: "DEMO_MAP_ID",
     });
@@ -275,21 +282,60 @@ const ApplicationsPage = () => {
               <p><strong>Location:</strong> {selectedJob.location}</p>
               <div id="map"></div>
               <p><strong>Industry:</strong> {selectedJob.industry}</p>
+              <a href={selectedJob.jobLink} target="_blank"><strong>Application Link</strong></a>
+              <hr></hr>
               <div className="form-group">
-                <div class="btn-group">
-                  <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    Application Status
-                  </button>
-                  <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">applied</a></li>
-                    <li><a class="dropdown-item" href="#">interviewing</a></li>
-                    <li><a class="dropdown-item" href="#">offered</a></li>
-                    <li><a class="dropdown-item" href="#">archived</a></li>
-                    <li><a class="dropdown-item" href="#">screening</a></li>
-                    <li><a class="dropdown-item" href="#">rejected</a></li>
-                    <li><a class="dropdown-item" href="#">withdraw</a></li>
-                  </ul>
+                <div className="btn-group">
+                  <div className="btn-group">
+                    <button
+                      type="button"
+                      className="btn btn-warning dropdown-toggle"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      Status: {selectedStatus}
+                    </button>
+                    <ul className="dropdown-menu">
+                      <li>
+                        <a className="dropdown-item" href="#" onClick={() => setSelectedStatus("applied")}>
+                          applied
+                        </a>
+                      </li>
+                      <li>
+                        <a className="dropdown-item" href="#" onClick={() => setSelectedStatus("interviewing")}>
+                          interviewing
+                        </a>
+                      </li>
+                      <li>
+                        <a className="dropdown-item" href="#" onClick={() => setSelectedStatus("offered")}>
+                          offered
+                        </a>
+                      </li>
+                      <li>
+                        <a className="dropdown-item" href="#" onClick={() => setSelectedStatus("archived")}>
+                          archived
+                        </a>
+                      </li>
+                      <li>
+                        <a className="dropdown-item" href="#" onClick={() => setSelectedStatus("screening")}>
+                          screening
+                        </a>
+                      </li>
+                      <li>
+                        <a className="dropdown-item" href="#" onClick={() => setSelectedStatus("rejected")}>
+                          rejected
+                        </a>
+                      </li>
+                      <li>
+                        <a className="dropdown-item" href="#" onClick={() => setSelectedStatus("withdraw")}>
+                          withdraw
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
+                <br></br>
+                <br></br>
                 <label><strong>Notes:</strong></label>
                 <textarea
                   className="form-control"
@@ -319,7 +365,7 @@ const ApplicationsPage = () => {
                 Applying...
               </>
             ) : (
-              "Confirm Apply"
+              "Confirm Update"
             )}
           </Button>
         </Modal.Footer>

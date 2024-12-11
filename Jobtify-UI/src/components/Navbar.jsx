@@ -6,12 +6,9 @@ const Navbar = () => {
   const UserID = JSON.parse(localStorage.getItem('UserID')); // 从 localStorage 获取用户信息
 
   const handleSignOut = () => {
-    // 清除用户的身份验证信息
     localStorage.removeItem('UserID');
     localStorage.removeItem('applications');
-
-    // 重定向到登录页面
-    navigate('/login');
+    navigate('/');
   };
 
   // 只有在用户存在时才显示导航栏
@@ -27,10 +24,13 @@ const Navbar = () => {
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav">
             <li className="nav-item">
-              <Link className="nav-link" to={`/applications/${UserID}`}>Applications</Link>
+              <Link className="nav-link" to={`/applications`}>Applications</Link>
             </li>
             <li className="nav-item">
               <Link className="nav-link" to="/jobs">Jobs</Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link" to="/dashboard">Dashboard</Link>
             </li>
             <li className="nav-item">
               <button className="nav-link btn btn-link" onClick={handleSignOut} style={{ cursor: 'pointer' }}>

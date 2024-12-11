@@ -111,7 +111,7 @@ const Jobs = () => {
 
     // The map, centered at Uluru
     map = new Map(document.getElementById("map"), {
-      zoom: 4,
+      zoom: 8,
       center: position,
       mapId: "DEMO_MAP_ID",
     });
@@ -176,6 +176,8 @@ const Jobs = () => {
               <p><strong>Location:</strong> {selectedJob.location}</p>
               <div id="map"></div>
               <p><strong>Industry:</strong> {selectedJob.industry}</p>
+              <a href={selectedJob.jobLink} target="_blank"><strong>Click here to apply!</strong></a>
+              <hr></hr>
               <div className="form-group">
                 <label><strong>Notes:</strong></label>
                 <textarea
@@ -206,7 +208,7 @@ const Jobs = () => {
                 Applying...
               </>
             ) : (
-              "Confirm Apply"
+              "Confirm Application"
             )}
           </Button>
         </Modal.Footer>
