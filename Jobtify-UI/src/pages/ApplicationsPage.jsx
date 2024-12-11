@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css'; // 引入Bootstrap样式
 import { FaEye } from 'react-icons/fa'; // 引入图标库
 import { Modal, Button, Spinner } from 'react-bootstrap';
+ //import './ApplicationsPage.css';
 
 const ApplicationsPage = () => {
   const [userId, setUserId] = useState(() => {
@@ -15,7 +16,7 @@ const ApplicationsPage = () => {
   const [companyNames, setCompanyNames] = useState({});
   const [salary, setSalary] = useState({});
   const [error, setError] = useState('');
-  
+
   const [showDeleteToast, setShowDeleteToast] = useState(false);
   const [showUpdateToast, setShowUpdateToast] = useState(false);
 
@@ -31,7 +32,6 @@ const ApplicationsPage = () => {
 
   const navigate = useNavigate();
 
-  // 封装获取applications的函数，方便更新后重新调用
   const fetchApplications = async () => {
     if (!userId) return;
 
@@ -44,7 +44,6 @@ const ApplicationsPage = () => {
       const response = await axios.get(url);
       setApplications(response.data);
 
-      // 获取所有 jobIds
       const jobIds = response.data.map((app) => app.jobId);
       const jobRequests = jobIds.map((jobId) =>
         axios.get(`http://54.90.234.55:8080/api/jobs/${jobId}`)
@@ -69,11 +68,9 @@ const ApplicationsPage = () => {
 
       setCompanyNames(namesMapping);
       setSalary(salariesMapping);
-      setError(''); // 清空error，因为成功获取数据
+      setError('');
     } catch (err) {
-      // 若后端返回404等情况，需要进行判断
       if (err.response && err.response.status === 404) {
-        // 说明没有应用
         setApplications([]);
         setCompanyNames({});
         setSalary({});
@@ -84,7 +81,6 @@ const ApplicationsPage = () => {
     }
   };
 
-  // 当 userId 或 filterStatus 改变时重新获取applications
   useEffect(() => {
     fetchApplications();
   }, [userId, filterStatus]);
@@ -120,7 +116,6 @@ const ApplicationsPage = () => {
     setLoadingIds((prev) => ({ ...prev, [applicationId]: true }));
     try {
       await axios.delete(`http://18.118.161.48:8080/api/application/applications/${applicationId}`);
-      // 删除本地的application
       setApplications(applications.filter((app) => app.applicationId !== applicationId));
       setShowDeleteToast(true);
       setTimeout(() => { setShowDeleteToast(false); }, 3000);
@@ -219,9 +214,90 @@ const ApplicationsPage = () => {
     'screening'
   ];
 
+  const [isPopupVisible, setPopupVisible] = useState(false);
+  const [formData, setFormData] = useState({
+    jobTitle: '',
+    company: '',
+    dateApplied: '',
+    status: ''
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('Form submitted:', formData);
+    setPopupVisible(false);
+    setFormData({ jobTitle: '', company: '', dateApplied: '', status: '' });
+  };
+
   return (
     <div className="container mt-5">
       <h2>Your Applications</h2>
+
+      <button onClick={() => setPopupVisible(true)} className="btn btn-primary mb-4">
+        Add Job Application
+      </button>
+
+      {isPopupVisible && (
+        <div className="popup">
+          <div className="popup-content">
+            <h2>Add Job Application</h2>
+            <form onSubmit={handleSubmit}>
+              <label>
+                Job Title:
+                <input
+                  type="text"
+                  name="jobTitle"
+                  value={formData.jobTitle}
+                  onChange={handleInputChange}
+                  required
+                />
+              </label>
+              <label>
+                Company:
+                <input
+                  type="text"
+                  name="company"
+                  value={formData.company}
+                  onChange={handleInputChange}
+                  required
+                />
+              </label>
+              <label>
+                Date Applied:
+                <input
+                  type="date"
+                  name="dateApplied"
+                  value={formData.dateApplied}
+                  onChange={handleInputChange}
+                  required
+                />
+              </label>
+              <label>
+                Status:
+                <input
+                  type="text"
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  required
+                />
+              </label>
+              <div className="form-actions">
+                <button type="submit" className="btn btn-success">Save</button>
+                <button type="button" onClick={() => setPopupVisible(false)} className="btn btn-secondary">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
 
       <div className="mb-3">
         <div className="btn-group dropend">
@@ -389,7 +465,7 @@ const ApplicationsPage = () => {
           <button type="button" className="btn-close" onClick={() => setShowDeleteToast(false)}></button>
         </div>
         <div className="toast-body">
-          Application has been deleted successfully.
+          Application has beendeleted successfully.
         </div>
       </div>
 
