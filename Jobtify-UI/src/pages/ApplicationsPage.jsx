@@ -3,8 +3,10 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css'; // 引入Bootstrap样式
 import { FaEye } from 'react-icons/fa'; // 引入图标库
-import { Modal, Button, Spinner } from 'react-bootstrap';
- //import './ApplicationsPage.css';
+import { Button, Spinner } from 'react-bootstrap';
+import ApplicationViewModal from './ApplicationViewModal'; // 引入新的组件
+import AddApplicationModal from './AddApplicationModal'; // 引入新的组件
+//import './ApplicationsPage.css';
 
 const ApplicationsPage = () => {
   const [userId, setUserId] = useState(() => {
@@ -23,7 +25,8 @@ const ApplicationsPage = () => {
   const [loadingIds, setLoadingIds] = useState({});
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState('');
   const [selectedStatus, setSelectedStatus] = useState("Application Status");
@@ -45,13 +48,14 @@ const ApplicationsPage = () => {
       setApplications(response.data);
 
       const jobIds = response.data.map((app) => app.jobId);
-      const jobRequests = jobIds.map((jobId) =>
-        axios.get(`http://54.90.234.55:8080/api/jobs/${jobId}`)
-          .then((res) => ({ jobId, companyName: res.data.company, salary: res.data.salary }))
-          .catch((err) => {
-            console.error(`Failed to fetch company for jobId ${jobId}`, err);
-            return null;
-          })
+      const uniqueJobIds = [...new Set(jobIds)]; // Ensure unique jobIds to prevent redundant requests
+      const jobRequests = uniqueJobIds.map((jobId) =>
+          axios.get(`http://54.90.234.55:8080/api/jobs/${jobId}`)
+              .then((res) => ({ jobId, companyName: res.data.company, salary: res.data.salary }))
+              .catch((err) => {
+                console.error(`Failed to fetch company for jobId ${jobId}`, err);
+                return null;
+              })
       );
 
       const jobData = await Promise.all(jobRequests);
@@ -83,33 +87,45 @@ const ApplicationsPage = () => {
 
   useEffect(() => {
     fetchApplications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, filterStatus]);
 
   useEffect(() => {
-    if (showModal && selectedApplication && selectedJob) {
-      initMap();
+    if (showViewModal && selectedApplication && selectedJob) {
+      // The map initialization is now handled inside ApplicationViewModal
     }
     return () => {
-      map = null;
+      // Cleanup if necessary
     };
-  }, [showModal, selectedApplication, selectedJob]);
+  }, [showViewModal, selectedApplication, selectedJob]);
 
   useEffect(() => {
     if (selectedApplication) {
       jobDetailFetch();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedApplication]);
 
-  const openModal = (application) => {
+  const openViewModal = (application) => {
     setSelectedApplication(application);
     setSelectedStatus(application.applicationStatus);
     setNotes(application.notes);
-    setShowModal(true);
+    setShowViewModal(true);
   };
 
-  const closeModal = () => {
-    setShowModal(false);
+  const closeViewModal = () => {
+    setShowViewModal(false);
     setNotes('');
+    setSelectedApplication(null);
+    setSelectedJob(null);
+  };
+
+  const openAddModal = () => {
+    setShowAddModal(true);
+  };
+
+  const closeAddModal = () => {
+    setShowAddModal(false);
   };
 
   const deleteApplication = async (applicationId) => {
@@ -150,11 +166,11 @@ const ApplicationsPage = () => {
 
       if (response.status === 200) {
         console.log("Application updated successfully!");
-        // 更新本地状态中的applications，让前端立即显示最新状态
-        const updatedApps = applications.map((app) => 
-          app.applicationId === selectedApplication.applicationId 
-            ? { ...app, applicationStatus, notes } 
-            : app
+        // Update local state to reflect changes immediately
+        const updatedApps = applications.map((app) =>
+            app.applicationId === selectedApplication.applicationId
+                ? { ...app, applicationStatus, notes }
+                : app
         );
         setApplications(updatedApps);
       }
@@ -166,41 +182,50 @@ const ApplicationsPage = () => {
     }
   };
 
-  const updateApplication = async () => {
+  const updateApplicationHandler = async () => {
     setLoading(true);
     await jobApplicationUpdate();
     setLoading(false);
     setShowUpdateToast(true);
     setTimeout(() => { setShowUpdateToast(false); }, 3000);
-    closeModal();
+    closeViewModal();
   };
 
-  let map;
+  const addApplication = async (newApplication) => {
+    try {
+      const response = await axios.post(`http://18.118.161.48:8080/api/application/applications`, {
+        userId: userId,
+        jobTitle: newApplication.jobTitle,
+        company: newApplication.company,
+        dateApplied: newApplication.dateApplied,
+        status: newApplication.status
+      });
 
-  async function initMap() {
-    const mapElement = document.getElementById("map");
-    if (!mapElement || !selectedJob) {
-      console.error("Map element or selectedJob not found");
-      return;
+      if (response.status === 201 || response.status === 200) {
+        console.log("Application added successfully!");
+        setApplications([...applications, response.data]);
+
+        // Optionally fetch the updated companyNames and salary if jobId is part of response
+        const jobId = response.data.jobId;
+        if (jobId && !companyNames[jobId]) {
+          try {
+            const jobRes = await axios.get(`http://54.90.234.55:8080/api/jobs/${jobId}`);
+            setCompanyNames(prev => ({ ...prev, [jobId]: jobRes.data.company }));
+            setSalary(prev => ({ ...prev, [jobId]: jobRes.data.salary }));
+          } catch (jobErr) {
+            console.error(`Failed to fetch company details for jobId ${jobId}`, jobErr);
+          }
+        }
+
+        setShowAddModal(false);
+        setShowUpdateToast(true);
+        setTimeout(() => { setShowUpdateToast(false); }, 3000);
+      }
+    } catch (error) {
+      console.error("Error adding application:", error);
+      setError('Error adding new application.');
     }
-
-    const position = { lat: selectedJob.latitude, lng: selectedJob.longitude };
-    //@ts-ignore
-    const { Map } = await google.maps.importLibrary("maps");
-    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-
-    map = new Map(mapElement, {
-      zoom: 8,
-      center: position,
-      mapId: "DEMO_MAP_ID",
-    });
-
-    new AdvancedMarkerElement({
-      map: map,
-      position: position,
-      title: selectedJob.company,
-    });
-  }
+  };
 
   const statuses = [
     'ALL',
@@ -214,278 +239,151 @@ const ApplicationsPage = () => {
     'screening'
   ];
 
-  const [isPopupVisible, setPopupVisible] = useState(false);
-  const [formData, setFormData] = useState({
-    jobTitle: '',
-    company: '',
-    dateApplied: '',
-    status: ''
-  });
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
-    setPopupVisible(false);
-    setFormData({ jobTitle: '', company: '', dateApplied: '', status: '' });
-  };
-
   return (
-    <div className="container mt-5">
-      <h2>Your Applications</h2>
+      <div className="container mt-5">
+        <h2>Your Applications</h2>
 
-      <button onClick={() => setPopupVisible(true)} className="btn btn-primary mb-4">
-        Add Job Application
-      </button>
+        <Button onClick={openAddModal} className="btn btn-primary mb-4">
+          Add Job Application
+        </Button>
 
-      {isPopupVisible && (
-        <div className="popup">
-          <div className="popup-content">
-            <h2>Add Job Application</h2>
-            <form onSubmit={handleSubmit}>
-              <label>
-                Job Title:
-                <input
-                  type="text"
-                  name="jobTitle"
-                  value={formData.jobTitle}
-                  onChange={handleInputChange}
-                  required
-                />
-              </label>
-              <label>
-                Company:
-                <input
-                  type="text"
-                  name="company"
-                  value={formData.company}
-                  onChange={handleInputChange}
-                  required
-                />
-              </label>
-              <label>
-                Date Applied:
-                <input
-                  type="date"
-                  name="dateApplied"
-                  value={formData.dateApplied}
-                  onChange={handleInputChange}
-                  required
-                />
-              </label>
-              <label>
-                Status:
-                <input
-                  type="text"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  required
-                />
-              </label>
-              <div className="form-actions">
-                <button type="submit" className="btn btn-success">Save</button>
-                <button type="button" onClick={() => setPopupVisible(false)} className="btn btn-secondary">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        {/* Add Application Modal */}
+        <AddApplicationModal
+            show={showAddModal}
+            handleClose={closeAddModal}
+            handleAddApplication={addApplication}
+        />
 
-
-      <div className="mb-3">
-        <div className="btn-group dropend">
-          <button
-            type="button"
-            className="btn btn-secondary dropdown-toggle"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            Filter by Status: {filterStatus}
-          </button>
-          <ul className="dropdown-menu">
-            {statuses.map((status) => (
-              <li key={status}>
-                <a
-                  className="dropdown-item"
-                  href="#"
-                  onClick={() => setFilterStatus(status)}
-                >
-                  {status}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {error && <div className="alert alert-danger">{error}</div>}
-      
-      <div className="row">
-        {applications.length === 0 && !error && (
-          <div className="col-12">
-            <p>No applications found.</p>
-          </div>
-        )}
-        {applications.map((application) => (
-          <div className="col-md-4 mb-3" key={application.applicationId}>
-            <div className="card shadow-sm">
-              <div className="card-body">
-                <h5 className="card-title">
-                  Company: {companyNames[application.jobId] || 'Unavailable'}
-                </h5>
-                <p className="card-text">
-                  <strong>Annual Salary:</strong> {salary[application.jobId] ? salary[application.jobId] : 'Unknown'} 
-                  <br/>
-                  <strong>Status:</strong> {application.applicationStatus} 
-                  <br/>
-                  <strong>Application time:</strong> {application.timeOfApplication} 
-                  <br/>
-                  <strong>Notes:</strong> {application.notes}
-                </p>
-                <Button
-                  variant="danger"
-                  className="float-end"
-                  onClick={() => deleteApplication(application.applicationId)}
-                  disabled={loadingIds[application.applicationId]}
-                >
-                  {loadingIds[application.applicationId] ? (
-                    <>
-                      <Spinner
-                        as="span"
-                        animation="border"
-                        size="sm"
-                        role="status"
-                        aria-hidden="true"
-                      /> Deleting...
-                    </>
-                  ) : (
-                    "Delete"
-                  )}
-                </Button>
-                <button
-                  className="btn btn-primary float-end me-2"
-                  onClick={() => openModal(application)}
-                >
-                  <FaEye className="me-1" /> View
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <Modal show={showModal} onHide={closeModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Job Details</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedJob && (
-            <>
-              <p><strong>Company:</strong> {selectedJob.company}</p>
-              <p><strong>Title:</strong> {selectedJob.title}</p>
-              <p><strong>Description:</strong> {selectedJob.description}</p>
-              <p><strong>Salary:</strong> ${selectedJob.salary.toLocaleString()}</p>
-              <p><strong>Location:</strong> {selectedJob.location}</p>
-              <div id="map"></div>
-              <p><strong>Industry:</strong> {selectedJob.industry}</p>
-              <a href={selectedJob.jobLink} target="_blank" rel="noopener noreferrer"><strong>Application Link</strong></a>
-              <hr/>
-              <div className="form-group">
-                <div className="btn-group">
-                  <div className="btn-group">
-                    <button
-                      type="button"
-                      className="btn btn-warning dropdown-toggle"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
+        <div className="mb-3">
+          <div className="btn-group dropend">
+            <button
+                type="button"
+                className="btn btn-secondary dropdown-toggle"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+            >
+              Filter by Status: {filterStatus}
+            </button>
+            <ul className="dropdown-menu">
+              {statuses.map((status) => (
+                  <li key={status}>
+                    <a
+                        className="dropdown-item"
+                        href="#"
+                        onClick={() => setFilterStatus(status)}
                     >
-                      Status: {selectedStatus}
+                      {status}
+                    </a>
+                  </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {error && <div className="alert alert-danger">{error}</div>}
+
+        <div className="row">
+          {applications.length === 0 && !error && (
+              <div className="col-12">
+                <p>No applications found.</p>
+              </div>
+          )}
+          {applications.map((application) => (
+              <div className="col-md-4 mb-3" key={application.applicationId}>
+                <div className="card shadow-sm">
+                  <div className="card-body">
+                    <h5 className="card-title">
+                      Company: {companyNames[application.jobId] || 'Unavailable'}
+                    </h5>
+                    <p className="card-text">
+                      <strong>Annual Salary:</strong> {salary[application.jobId] ? `$${salary[application.jobId].toLocaleString()}` : 'Unknown'}
+                      <br />
+                      <strong>Status:</strong> {application.applicationStatus}
+                      <br />
+                      <strong>Application time:</strong> {application.timeOfApplication}
+                      <br />
+                      <strong>Notes:</strong> {application.notes}
+                    </p>
+                    <Button
+                        variant="danger"
+                        className="float-end"
+                        onClick={() => deleteApplication(application.applicationId)}
+                        disabled={loadingIds[application.applicationId]}
+                    >
+                      {loadingIds[application.applicationId] ? (
+                          <>
+                            <Spinner
+                                as="span"
+                                animation="border"
+                                size="sm"
+                                role="status"
+                                aria-hidden="true"
+                            /> Deleting...
+                          </>
+                      ) : (
+                          "Delete"
+                      )}
+                    </Button>
+                    <button
+                        className="btn btn-primary float-end me-2"
+                        onClick={() => openViewModal(application)}
+                    >
+                      <FaEye className="me-1" /> View
                     </button>
-                    <ul className="dropdown-menu">
-                      <li><a className="dropdown-item" href="#" onClick={() => setSelectedStatus("applied")}>applied</a></li>
-                      <li><a className="dropdown-item" href="#" onClick={() => setSelectedStatus("interviewing")}>interviewing</a></li>
-                      <li><a className="dropdown-item" href="#" onClick={() => setSelectedStatus("offered")}>offered</a></li>
-                      <li><a className="dropdown-item" href="#" onClick={() => setSelectedStatus("archived")}>archived</a></li>
-                      <li><a className="dropdown-item" href="#" onClick={() => setSelectedStatus("screening")}>screening</a></li>
-                      <li><a className="dropdown-item" href="#" onClick={() => setSelectedStatus("rejected")}>rejected</a></li>
-                      <li><a className="dropdown-item" href="#" onClick={() => setSelectedStatus("withdraw")}>withdraw</a></li>
-                    </ul>
                   </div>
                 </div>
-                <br /><br />
-                <label><strong>Notes:</strong></label>
-                <textarea
-                  className="form-control"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows="5" 
-                  placeholder="Enter your notes here..."
-                ></textarea>
               </div>
-            </>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={closeModal}>Close</Button>
-          <Button variant="primary" onClick={updateApplication} disabled={loading}>
-            {loading ? (
-              <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                /> Updating...
-              </>
-            ) : (
-              "Confirm Update"
-            )}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
-      {/* Delete Delete Toast */}
-      <div
-        className={`toast position-fixed bottom-0 end-0 p-3 ${showDeleteToast ? 'show' : 'hide'}`}
-        style={{ zIndex: 5 }}
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-      >
-        <div className="toast-header">
-          <strong className="me-auto">Notification</strong>
-          <button type="button" className="btn-close" onClick={() => setShowDeleteToast(false)}></button>
+          ))}
         </div>
-        <div className="toast-body">
-          Application has beendeleted successfully.
+
+        {/* Application View Modal */}
+        <ApplicationViewModal
+            show={showViewModal}
+            handleClose={closeViewModal}
+            application={selectedApplication}
+            job={selectedJob}
+            selectedStatus={selectedStatus}
+            setSelectedStatus={setSelectedStatus}
+            notes={notes}
+            setNotes={setNotes}
+            updateApplication={updateApplicationHandler}
+            loading={loading}
+        />
+
+        {/* Delete Toast */}
+        <div
+            className={`toast position-fixed bottom-0 end-0 p-3 ${showDeleteToast ? 'show' : 'hide'}`}
+            style={{ zIndex: 1055 }}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+        >
+          <div className="toast-header">
+            <strong className="me-auto">Notification</strong>
+            <button type="button" className="btn-close" onClick={() => setShowDeleteToast(false)}></button>
+          </div>
+          <div className="toast-body">
+            Application has been deleted successfully.
+          </div>
+        </div>
+
+        {/* Update Success Toast */}
+        <div
+            className={`toast position-fixed bottom-0 end-0 p-3 ${showUpdateToast ? 'show' : 'hide'}`}
+            style={{ zIndex: 1055 }}
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+        >
+          <div className="toast-header">
+            <strong className="me-auto">Notification</strong>
+            <button type="button" className="btn-close" onClick={() => setShowUpdateToast(false)}></button>
+          </div>
+          <div className="toast-body">
+            {showDeleteToast ? "Application has been deleted successfully." : "Application has been updated successfully."}
+          </div>
         </div>
       </div>
-
-      {/* Update Success Toast */}
-      <div
-        className={`toast position-fixed bottom-0 end-0 p-3 ${showUpdateToast ? 'show' : 'hide'}`}
-        style={{ zIndex: 1055 }}
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-      >
-        <div className="toast-header">
-          <strong className="me-auto">Notification</strong>
-          <button type="button" className="btn-close" onClick={() => setShowUpdateToast(false)}></button>
-        </div>
-        <div className="toast-body">
-          Application has been updated successfully.
-        </div>
-      </div>
-    </div>
   );
 };
 
