@@ -6,21 +6,23 @@ import { useNavigate } from 'react-router-dom';
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // Track current page
+  const [jobsPerPage] = useState(10); // Number of jobs per page
   const [error, setError] = useState('');
-  const [selectedJob, setSelectedJob] = useState(null); // 选中的工作信息
-  const [showModal, setShowModal] = useState(false); // 控制 Modal 的显示
-  const [notes, setNotes] = useState(''); // Notes 文本
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [notes, setNotes] = useState('');
   const [showToast, setShowToast] = useState(false);
-  const [loading, setLoading] = useState(false); // 控制 Spinner 的显示
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const userId = localStorage.getItem('UserID')
+  const userId = localStorage.getItem('UserID');
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         const response = await axios.get('http://54.90.234.55:8080/api/jobs');
-        setJobs(response.data.content); // 存储 "content" 数组中的所有 job 信息
+        setJobs(response.data.content);
       } catch (err) {
         setError('Error fetching jobs');
         console.error(err);
@@ -35,29 +37,25 @@ const Jobs = () => {
     }
 
     return () => {
-      // Clean up code
       map = null;
     };
   }, [showModal, selectedJob]);
 
   const openModal = (job) => {
-    setSelectedJob(job); // 设置选中的工作信息
-    setShowModal(true); // 显示模态框
+    setSelectedJob(job);
+    setShowModal(true);
   };
 
   const closeModal = () => {
-    setShowModal(false); // 关闭模态框
-    setNotes(''); // 清空 Notes 字段
+    setShowModal(false);
+    setNotes('');
   };
 
   const jobApplication = async () => {
     try {
-      console.log(111111111);
-      // 设定申请的时间、状态和备注
       const timeOfApplication = new Date().toISOString();
       const applicationStatus = "applied";
 
-      // 发送 POST 请求到后端 API
       const response = await axios.post(
         `http://18.118.161.48:8080/api/application/${userId}/${selectedJob.jobId}/applications`,
         {
@@ -69,31 +67,28 @@ const Jobs = () => {
 
       if (response.status === 201) {
         console.log("Application created successfully!");
-        // 可在这里添加进一步的逻辑，例如展示通知
       }
     } catch (error) {
       console.error("Error creating application:", error);
       if (error.response && error.response.status === 404) {
-        // console.error("Invalid Input");
         alert("Please verify user id and job id are correct");
       }
     }
   };
 
   const submitApplication = async () => {
-    setLoading(true); // 开始加载
+    setLoading(true);
     await jobApplication();
     setTimeout(() => {
-      setLoading(false); // 停止加载
+      setLoading(false);
       setShowToast(true);
-      setTimeout(() => {setShowToast(false)}, 3000);
-      // navigate(`/applications/${userId}`)
-      // 关闭模态框
+      setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
       closeModal();
     }, 1500);
   };
 
-  // Initialize and add the map
   let map;
 
   async function initMap() {
@@ -103,27 +98,30 @@ const Jobs = () => {
       return;
     }
 
-    // The location of Uluru
     const position = { lat: selectedJob.latitude, lng: selectedJob.longitude };
-    // Request needed libraries.
     //@ts-ignore
     const { Map } = await google.maps.importLibrary("maps");
     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
-    // The map, centered at Uluru
     map = new Map(document.getElementById("map"), {
       zoom: 8,
       center: position,
       mapId: "DEMO_MAP_ID",
     });
 
-    // The marker, positioned at Uluru
     const marker = new AdvancedMarkerElement({
       map: map,
       position: position,
       title: "Uluru",
     });
   }
+
+  // Pagination logic
+  const indexOfLastJob = currentPage * jobsPerPage;
+  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
+  const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div className="container mt-5">
@@ -142,7 +140,7 @@ const Jobs = () => {
           </tr>
         </thead>
         <tbody>
-          {jobs.map((job) => (
+          {currentJobs.map((job) => (
             job.publicView && (
               <tr key={job.jobId}>
                 <td>{job.company}</td>
@@ -162,6 +160,18 @@ const Jobs = () => {
         </tbody>
       </table>
 
+      {/* Pagination Controls */}
+      <nav>
+        <ul className="pagination justify-content-center">
+          {Array.from({ length: Math.ceil(jobs.length / jobsPerPage) }, (_, index) => (
+            <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
+              <button className="page-link" onClick={() => paginate(index + 1)}>
+                {index + 1}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
       <Modal show={showModal} onHide={closeModal} centered>
         <Modal.Header closeButton>
@@ -185,7 +195,7 @@ const Jobs = () => {
                   className="form-control"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  rows="5" 
+                  rows="5"
                   placeholder="Enter your notes here..."
                 ></textarea>
               </div>
@@ -214,7 +224,6 @@ const Jobs = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
 
       <div
         className={`toast position-fixed bottom-0 end-0 p-3 ${showToast ? 'show' : 'hide'}`}
