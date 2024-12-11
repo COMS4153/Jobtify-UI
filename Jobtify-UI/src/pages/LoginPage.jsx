@@ -23,7 +23,6 @@ const LoginPage = () => {
       );
 
       localStorage.setItem('UserID', JSON.stringify(response.data.id)); // Save user data
-      // localStorage.setItem('applications', JSON.stringify(applications)); // Save applications
       navigate(`/applications`); // Navigate to applications page
     } catch (err) {
       setError('Invalid credentials, please try again.');
@@ -32,30 +31,33 @@ const LoginPage = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      console.log("credentialResponse: " + credentialResponse)
-      console.log("credentialResponse.credential: " + credentialResponse.credential)
-      const idToken = credentialResponse.credential;
-      const decoded = jwtDecode(idToken);
-      console.log('Google User:', decoded);
-      
-      // Send ID Token to backend for authentication and login
-      const response = await axios.post(`${user_service_url}/api/users/google-login`, {
-        idToken: idToken
-      }, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+        const idToken = credentialResponse.credential;
 
-      console.log(response)
+        // Decode ID token
+        const decoded = jwtDecode(idToken);
+        console.log('Google User:', decoded);
 
-      // localStorage.setItem('UserID', JSON.stringify(response.data.id));
-      // navigate(`/applications/${response.data.id}`);
+        // Send token to backend
+        const response = await axios.post(`${user_service_url}/api/users/google-login`, {
+            idToken: idToken
+        }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log(response);
+        console.log("userId: " + response.data.userId);
+
+        // Save user ID and navigate
+        localStorage.setItem('UserID', JSON.stringify(response.data.userId));
+        navigate(`/applications`);
     } catch (err) {
-      console.error('Google Sign-In Error:', err);
-      setError('Google Sign-In failed. Please try again.');
+        console.error('Error during Google Sign-In:', err);
+        setError('Google Sign-In failed. Please try again.');
     }
-  };
+};
+
 
   const handleGoogleFailure = (error) => {
     console.error('Google Sign-In Failed:', error);
