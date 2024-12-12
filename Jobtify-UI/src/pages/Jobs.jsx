@@ -3,6 +3,7 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Modal, Button, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import CustomToast from '../components/CustomToast';
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
@@ -225,21 +226,12 @@ const Jobs = () => {
         </Modal.Footer>
       </Modal>
 
-      <div
-        className={`toast position-fixed bottom-0 end-0 p-3 ${showToast ? 'show' : 'hide'}`}
-        style={{ zIndex: 5 }}
-        role="alert"
-        aria-live="assertive"
-        aria-atomic="true"
-      >
-        <div className="toast-header">
-          <strong className="me-auto">Notification</strong>
-          <button type="button" className="btn-close" onClick={() => setShowToast(false)}></button>
-        </div>
-        <div className="toast-body">
-          Job has been marked as applied successfully.
-        </div>
-      </div>
+      {/* Custom Toast */}
+      <CustomToast
+        show={showToast}
+        message="Job has been marked as applied successfully."
+        onClose={() => setShowToast(false)}
+      />
     </div>
   );
 };

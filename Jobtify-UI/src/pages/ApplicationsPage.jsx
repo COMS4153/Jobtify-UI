@@ -11,6 +11,7 @@ import useJobDetails from '../hooks/useJobDetails';
 import useDeleteApplication from '../hooks/useDeleteApplication';
 import useAddApplication from '../hooks/useAddApplication';
 import useUpdateApplication from '../hooks/useUpdateApplication';
+import CustomToast from '../components/CustomToast';
 //import './ApplicationsPage.css';
 
 const ApplicationsPage = () => {
@@ -242,39 +243,17 @@ const ApplicationsPage = () => {
             loading={loading}
         />
 
-        {/* Delete Toast */}
-        <div
-            className={`toast position-fixed bottom-0 end-0 p-3 ${showDeleteToast ? 'show' : 'hide'}`}
-            style={{ zIndex: 1055 }}
-            role="alert"
-            aria-live="assertive"
-            aria-atomic="true"
-        >
-          <div className="toast-header">
-            <strong className="me-auto">Notification</strong>
-            <button type="button" className="btn-close" onClick={() => setShowDeleteToast(false)}></button>
-          </div>
-          <div className="toast-body">
-            Application has been deleted successfully.
-          </div>
-        </div>
-
-        {/* Update Success Toast */}
-        <div
-            className={`toast position-fixed bottom-0 end-0 p-3 ${showUpdateToast ? 'show' : 'hide'}`}
-            style={{ zIndex: 1055 }}
-            role="alert"
-            aria-live="assertive"
-            aria-atomic="true"
-        >
-          <div className="toast-header">
-            <strong className="me-auto">Notification</strong>
-            <button type="button" className="btn-close" onClick={() => setShowUpdateToast(false)}></button>
-          </div>
-          <div className="toast-body">
-            {showDeleteToast ? "Application has been deleted successfully." : "Application has been updated successfully."}
-          </div>
-        </div>
+        {/* Custom Toasts */}
+        <CustomToast
+          show={showDeleteToast}
+          message="Application has been deleted successfully."
+          onClose={() => setShowDeleteToast(false)}
+        />
+        <CustomToast
+          show={showUpdateToast}
+          message="Application has been updated successfully."
+          onClose={() => setShowUpdateToast(false)}
+        />
       </div>
   );
 };
