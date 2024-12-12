@@ -1,9 +1,12 @@
+// src/pages/LoginPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
 import jwtDecode from 'jwt-decode';
-import '../css/LoginPage.css'; // 单独的CSS文件用于样式
+import AuthLayout from '../components/AuthLayout';
+import AuthForm from '../components/AuthForm';
+// import './LoginPage.css'; // 保留或删除，根据需要
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
@@ -55,41 +58,14 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="login-page">
-            <div className="login-container">
-                <div className="login-left">
-                    <h1>Jobtify</h1>
-                    <p>Career Growth with SMART Coach</p>
-                </div>
-                <div className="login-right">
-                    <div className="card">
-                        <h2 className="card-title">Login</h2>
-                        {error && <div className="alert alert-danger">{error}</div>}
-                        <form onSubmit={handleSubmit}>
-                            <div className="form-group">
-                                <label>Username</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Password</label>
-                                <input
-                                    type="password"
-                                    className="form-control"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <button type="submit" className="btn-primary">
-                                Login
-                            </button>
-                        </form>
+        <AuthLayout>
+            <AuthForm
+                title="Login"
+                onSubmit={handleSubmit}
+                error={error}
+                submitButtonText="Login"
+                footer={
+                    <>
                         <GoogleLogin
                             onSuccess={handleGoogleSuccess}
                             onError={handleGoogleFailure}
@@ -97,15 +73,37 @@ const LoginPage = () => {
                             className="mt-3"
                         />
                         <button
+                            type="button"
                             className="btn-link"
                             onClick={() => navigate('/signup')}
                         >
                             Sign Up
                         </button>
-                    </div>
+                    </>
+                }
+            >
+                <div className="form-group">
+                    <label>Username</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                    />
                 </div>
-            </div>
-        </div>
+                <div className="form-group">
+                    <label>Password</label>
+                    <input
+                        type="password"
+                        className="form-control"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+                </div>
+            </AuthForm>
+        </AuthLayout>
     );
 };
 

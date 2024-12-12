@@ -124,7 +124,7 @@ const ApplicationViewModal = ({
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={handleClose}>Close</Button>
-        <Button variant="primary" onClick={updateApplication} disabled={loading}>
+        <Button variant="primary" onClick={() => {updateApplication(application, selectedStatus, notes)}} disabled={loading}>
           {loading ? (
             <>
               <Spinner

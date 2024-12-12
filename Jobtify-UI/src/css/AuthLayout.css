@@ -1,0 +1,155 @@
+/* src/components/AuthLayout.css */
+.auth-page .auth-container {
+  display: flex;
+  height: 100vh;
+  background-image: url('../assets/loginpage.jpg'); /* 使用 assets 文件夹中的背景图片 */
+  background-size: cover;
+  background-position: center;
+  font-family: 'Arial', sans-serif;
+}
+
+.auth-page .auth-left {
+  flex: 1;
+  background: linear-gradient(135deg, #1e3a8a, #1e40af);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 30px;
+}
+
+.auth-page .auth-left h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.auth-page .auth-left p {
+  font-size: 1.3rem;
+  margin-top: 0.5rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.auth-page .auth-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.auth-page .auth-right::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.6); /* 半透明白色蒙版 */
+  z-index: 0; /* 确保蒙版在卡片下 */
+  border-left: 5px solid rgba(0, 0, 0, 0.1); /* 添加细线分隔 */
+}
+
+.auth-page .card {
+  position: relative;
+  z-index: 2; /* 确保卡片在蒙版上 */
+  width: 85%;
+  max-width: 400px;
+  padding: 2rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  background-color: white;
+  animation: fadeIn 0.5s ease-in-out; /* 添加淡入效果 */
+}
+
+.auth-page .card-title {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-weight: bold;
+  color: #1e40af;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 10px;
+}
+
+.auth-page .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.auth-page .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.auth-page .form-control {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth-page .form-control:focus {
+  border-color: #1e40af;
+  box-shadow: 0 0 8px rgba(30, 64, 175, 0.4);
+  outline: none;
+}
+
+.auth-page .btn-primary {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #1e40af;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.auth-page .btn-primary:hover {
+  background-color: #1d4ed8;
+  transform: scale(1.02);
+}
+
+.auth-page .btn-link {
+  margin-top: 1rem;
+  color: #1e40af;
+  text-align: center;
+  display: block;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.auth-page .btn-link:hover {
+  color: #1d4ed8;
+}
+
+.auth-page .alert-danger {
+  font-size: 0.9rem;
+  color: #dc2626;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* 淡入动画 */
+@keyframes fadeIn {
+  from {
+      opacity: 0;
+      transform: translateY(-10px);
+  }
+  to {
+      opacity: 1;
+      transform: translateY(0);
+  }
+}

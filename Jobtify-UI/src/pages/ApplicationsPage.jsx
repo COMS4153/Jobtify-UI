@@ -6,6 +6,11 @@ import { FaEye } from 'react-icons/fa'; // 引入图标库
 import { Button, Spinner } from 'react-bootstrap';
 import ApplicationViewModal from './ApplicationViewModal'; // 引入新的组件
 import AddApplicationModal from './AddApplicationModal'; // 引入新的组件
+import useFetchApplications from '../hooks/useFetchApplications';
+import useJobDetails from '../hooks/useJobDetails';
+import useDeleteApplication from '../hooks/useDeleteApplication';
+import useAddApplication from '../hooks/useAddApplication';
+import useUpdateApplication from '../hooks/useUpdateApplication';
 //import './ApplicationsPage.css';
 
 const ApplicationsPage = () => {
@@ -14,81 +19,35 @@ const ApplicationsPage = () => {
     return storedUserId ? JSON.parse(storedUserId) : '';
   });
 
-  const [applications, setApplications] = useState([]);
-  const [companyNames, setCompanyNames] = useState({});
-  const [salary, setSalary] = useState({});
-  const [error, setError] = useState('');
-
-  const [showDeleteToast, setShowDeleteToast] = useState(false);
-  const [showUpdateToast, setShowUpdateToast] = useState(false);
-
-  const [loadingIds, setLoadingIds] = useState({});
   const [selectedApplication, setSelectedApplication] = useState(null);
-  const [selectedJob, setSelectedJob] = useState(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState('');
   const [selectedStatus, setSelectedStatus] = useState("Application Status");
-
   const [filterStatus, setFilterStatus] = useState('ALL');
-
   const navigate = useNavigate();
+  const [error, setError] = useState({})
 
-  const fetchApplications = async () => {
-    if (!userId) return;
+  // use custom hooks
+  const { applications, setApplications, companyNames, salary, error: fetchApplicationError } = useFetchApplications(userId, filterStatus)
+  const { selectedJob, setSelectedJob, error: fetchJobDetailError } = useJobDetails(selectedApplication)
+  const { deleteApplication, loadingIds, error: applicationDeletionError, showDeleteToast, setShowDeleteToast } = useDeleteApplication(applications, setApplications)
+  const { updateApplicationHandler, loading, error: applicationUpdateError, showUpdateToast, setShowUpdateToast } = useUpdateApplication(applications, setApplications, closeViewModal)
 
-    try {
-      let url = `http://18.118.161.48:8080/api/application/user/${userId}/applications`;
-      if (filterStatus !== 'ALL') {
-        url += `?status=${encodeURIComponent(filterStatus)}`;
-      }
-
-      const response = await axios.get(url);
-      setApplications(response.data);
-
-      const jobIds = response.data.map((app) => app.jobId);
-      const uniqueJobIds = [...new Set(jobIds)]; // Ensure unique jobIds to prevent redundant requests
-      const jobRequests = uniqueJobIds.map((jobId) =>
-          axios.get(`http://54.90.234.55:8080/api/jobs/${jobId}`)
-              .then((res) => ({ jobId, companyName: res.data.company, salary: res.data.salary }))
-              .catch((err) => {
-                console.error(`Failed to fetch company for jobId ${jobId}`, err);
-                return null;
-              })
-      );
-
-      const jobData = await Promise.all(jobRequests);
-      const namesMapping = jobData.reduce((acc, curr) => {
-        if (curr) acc[curr.jobId] = curr.companyName;
-        return acc;
-      }, {});
-      const salariesMapping = {};
-      jobData.forEach((data) => {
-        if (data) {
-          salariesMapping[data.jobId] = data.salary;
-        }
-      });
-
-      setCompanyNames(namesMapping);
-      setSalary(salariesMapping);
-      setError('');
-    } catch (err) {
-      if (err.response && err.response.status === 404) {
-        setApplications([]);
-        setCompanyNames({});
-        setSalary({});
-        setError('No applications found for the current filter.');
-      } else {
-        setError('Error fetching applications.');
-      }
-    }
-  };
+  // Combine fetchError to error
+  useEffect(() => {
+    setError((prevError) => ({
+      ...prevError,
+      applicationError: fetchApplicationError || null,
+      jobDetailError: fetchJobDetailError || null,
+      applicationDeletionError: applicationDeletionError || null,
+      applicationUpdateError: applicationUpdateError || null,
+    }))
+  }, [fetchApplicationError, fetchJobDetailError]);
 
   useEffect(() => {
-    fetchApplications();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, filterStatus]);
+    setError({});
+  }, [filterStatus])
 
   useEffect(() => {
     if (showViewModal && selectedApplication && selectedJob) {
@@ -99,13 +58,6 @@ const ApplicationsPage = () => {
     };
   }, [showViewModal, selectedApplication, selectedJob]);
 
-  useEffect(() => {
-    if (selectedApplication) {
-      jobDetailFetch();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedApplication]);
-
   const openViewModal = (application) => {
     setSelectedApplication(application);
     setSelectedStatus(application.applicationStatus);
@@ -113,12 +65,12 @@ const ApplicationsPage = () => {
     setShowViewModal(true);
   };
 
-  const closeViewModal = () => {
+  function closeViewModal() {
     setShowViewModal(false);
     setNotes('');
     setSelectedApplication(null);
     setSelectedJob(null);
-  };
+  }
 
   const openAddModal = () => {
     setShowAddModal(true);
@@ -126,69 +78,6 @@ const ApplicationsPage = () => {
 
   const closeAddModal = () => {
     setShowAddModal(false);
-  };
-
-  const deleteApplication = async (applicationId) => {
-    setLoadingIds((prev) => ({ ...prev, [applicationId]: true }));
-    try {
-      await axios.delete(`http://18.118.161.48:8080/api/application/applications/${applicationId}`);
-      setApplications(applications.filter((app) => app.applicationId !== applicationId));
-      setShowDeleteToast(true);
-      setTimeout(() => { setShowDeleteToast(false); }, 3000);
-    } catch (err) {
-      setError('Error deleting application');
-      if (err.response && err.response.status === 404) {
-        alert("Application not found");
-      }
-    } finally {
-      setLoadingIds((prev) => ({ ...prev, [applicationId]: false }));
-    }
-  };
-
-  const jobDetailFetch = async () => {
-    try {
-      const res = await axios.get(`http://54.90.234.55:8080/api/jobs/${selectedApplication.jobId}`);
-      setSelectedJob(res.data);
-    } catch (err) {
-      console.error(`Failed to fetch job detail for jobId ${selectedApplication.jobId}`, err);
-      setError('Error fetching job detail.');
-    }
-  };
-
-  const jobApplicationUpdate = async () => {
-    try {
-      const timeOfApplication = new Date().toISOString().split('.')[0];
-      const applicationStatus = selectedStatus;
-      const encodedNotes = encodeURIComponent(notes);
-
-      const url = `http://18.118.161.48:8080/api/application/applications/${selectedApplication.applicationId}?status=${applicationStatus}&notes=${encodedNotes}&timeOfApplication=${timeOfApplication}`;
-      const response = await axios.put(url);
-
-      if (response.status === 200) {
-        console.log("Application updated successfully!");
-        // Update local state to reflect changes immediately
-        const updatedApps = applications.map((app) =>
-            app.applicationId === selectedApplication.applicationId
-                ? { ...app, applicationStatus, notes }
-                : app
-        );
-        setApplications(updatedApps);
-      }
-    } catch (error) {
-      console.error("Error updating application:", error);
-      if (error.response && error.response.status === 404) {
-        alert("Application not found. Please check the application ID.");
-      }
-    }
-  };
-
-  const updateApplicationHandler = async () => {
-    setLoading(true);
-    await jobApplicationUpdate();
-    setLoading(false);
-    setShowUpdateToast(true);
-    setTimeout(() => { setShowUpdateToast(false); }, 3000);
-    closeViewModal();
   };
 
   const addApplication = async (newApplication) => {
@@ -280,7 +169,10 @@ const ApplicationsPage = () => {
           </div>
         </div>
 
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error.applicationError && <div className="alert alert-danger">{error.applicationError}</div>}
+        {error.jobDetailError && <div className="alert alert-danger">{error.jobDetailError}</div>}
+        {error.applicationDeletionError && <div className="alert alert-danger">{error.applicationDeletionError}</div>}
+        {error.applicationUpdateError && <div className="alert alert-danger">{error.applicationUpdateError}</div>}
 
         <div className="row">
           {applications.length === 0 && !error && (
