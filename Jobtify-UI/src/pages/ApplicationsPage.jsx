@@ -1,10 +1,11 @@
+// ApplicationsPage.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css'; // 引入Bootstrap样式
-import { FaEye } from 'react-icons/fa'; // 引入图标库
+import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap styles
+import { FaEye, FaDollarSign, FaBuilding, FaCalendarAlt, FaStickyNote, FaLink } from 'react-icons/fa'; // Import additional icons
 import { Button, Spinner } from 'react-bootstrap';
-import AddApplicationModal from './AddApplicationModal'; // 引入新的组件
+import AddApplicationModal from './AddApplicationModal';
 import useFetchApplications from '../hooks/useFetchApplications';
 import useJobDetails from '../hooks/useJobDetails';
 import useDeleteApplication from '../hooks/useDeleteApplication';
@@ -12,7 +13,7 @@ import useAddApplication from '../hooks/useAddApplication';
 import useUpdateApplication from '../hooks/useUpdateApplication';
 import CustomToast from '../components/CustomToast';
 import CustomModal from '../components/CustomModal';
-//import './ApplicationsPage.css';
+import '../css/CustomCard.css'; // Ensure the CSS file is imported
 
 const ApplicationsPage = () => {
   const [userId, setUserId] = useState(() => {
@@ -27,13 +28,13 @@ const ApplicationsPage = () => {
   const [selectedStatus, setSelectedStatus] = useState("Application Status");
   const [filterStatus, setFilterStatus] = useState('ALL');
   const navigate = useNavigate();
-  const [error, setError] = useState({})
+  const [error, setError] = useState({});
 
-  // use custom hooks
-  const { applications, setApplications, companyNames, setCompanyNames, salary, setSalary, error: fetchApplicationError } = useFetchApplications(userId, filterStatus)
-  const { selectedJob, setSelectedJob, error: fetchJobDetailError } = useJobDetails(selectedApplication)
-  const { deleteApplication, loadingIds, error: applicationDeletionError, showDeleteToast, setShowDeleteToast } = useDeleteApplication(applications, setApplications)
-  const { updateApplicationHandler, loading, error: applicationUpdateError, showUpdateToast, setShowUpdateToast } = useUpdateApplication(applications, setApplications, closeViewModal)
+  // Custom hooks
+  const { applications, setApplications, companyNames, setCompanyNames, salary, setSalary, error: fetchApplicationError } = useFetchApplications(userId, filterStatus);
+  const { selectedJob, setSelectedJob, error: fetchJobDetailError } = useJobDetails(selectedApplication);
+  const { deleteApplication, loadingIds, error: applicationDeletionError, showDeleteToast, setShowDeleteToast } = useDeleteApplication(applications, setApplications);
+  const { updateApplicationHandler, loading, error: applicationUpdateError, showUpdateToast, setShowUpdateToast } = useUpdateApplication(applications, setApplications, closeViewModal);
 
   // Combine fetchError to error
   useEffect(() => {
@@ -43,21 +44,12 @@ const ApplicationsPage = () => {
       jobDetailError: fetchJobDetailError || null,
       applicationDeletionError: applicationDeletionError || null,
       applicationUpdateError: applicationUpdateError || null,
-    }))
-  }, [fetchApplicationError, fetchJobDetailError]);
+    }));
+  }, [fetchApplicationError, fetchJobDetailError, applicationDeletionError, applicationUpdateError]);
 
   useEffect(() => {
     setError({});
-  }, [filterStatus])
-
-  useEffect(() => {
-    if (showViewModal && selectedApplication && selectedJob) {
-      // The map initialization is now handled inside ApplicationViewModal
-    }
-    return () => {
-      // Cleanup if necessary
-    };
-  }, [showViewModal, selectedApplication, selectedJob]);
+  }, [filterStatus]);
 
   const openViewModal = (application) => {
     setSelectedApplication(application);
@@ -130,135 +122,138 @@ const ApplicationsPage = () => {
   ];
 
   return (
-      <div className="container mt-5">
-        <h2>Your Applications</h2>
+    <div className="container mt-5">
+      <h2>Your Applications</h2>
 
-        <Button onClick={openAddModal} className="btn btn-primary mb-4">
-          Add Job Application
-        </Button>
+      <Button onClick={openAddModal} className="btn btn-primary mb-4 add-application-btn">
+        Add Job Application
+      </Button>
 
-        {/* Add Application Modal */}
-        <AddApplicationModal
-            show={showAddModal}
-            handleClose={closeAddModal}
-            handleAddApplication={addApplication}
-        />
+      {/* Add Application Modal */}
+      <AddApplicationModal
+        show={showAddModal}
+        handleClose={closeAddModal}
+        handleAddApplication={addApplication}
+      />
 
-        <div className="mb-3">
-          <div className="btn-group dropend">
-            <button
-                type="button"
-                className="btn btn-secondary dropdown-toggle"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-            >
-              Filter by Status: {filterStatus}
-            </button>
-            <ul className="dropdown-menu">
-              {statuses.map((status) => (
-                  <li key={status}>
-                    <a
-                        className="dropdown-item"
-                        href="#"
-                        onClick={() => setFilterStatus(status)}
-                    >
-                      {status}
-                    </a>
-                  </li>
-              ))}
-            </ul>
-          </div>
+      <div className="mb-3">
+        <div className="btn-group dropend">
+          <button
+            type="button"
+            className="btn btn-secondary dropdown-toggle"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            Filter by Status: {filterStatus}
+          </button>
+          <ul className="dropdown-menu">
+            {statuses.map((status) => (
+              <li key={status}>
+                <button
+                  className="dropdown-item"
+                  onClick={() => setFilterStatus(status)}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
+      </div>
 
-        {error.applicationError && <div className="alert alert-danger">{error.applicationError}</div>}
-        {error.jobDetailError && <div className="alert alert-danger">{error.jobDetailError}</div>}
-        {error.applicationDeletionError && <div className="alert alert-danger">{error.applicationDeletionError}</div>}
-        {error.applicationUpdateError && <div className="alert alert-danger">{error.applicationUpdateError}</div>}
+      {/* Error Alerts */}
+      {error.applicationError && <div className="alert alert-danger">{error.applicationError}</div>}
+      {error.jobDetailError && <div className="alert alert-danger">{error.jobDetailError}</div>}
+      {error.applicationDeletionError && <div className="alert alert-danger">{error.applicationDeletionError}</div>}
+      {error.applicationUpdateError && <div className="alert alert-danger">{error.applicationUpdateError}</div>}
 
-        <div className="row">
-          {applications.length === 0 && !error && (
-              <div className="col-12">
-                <p>No applications found.</p>
-              </div>
-          )}
-          {applications.map((application) => (
-              <div className="col-md-4 mb-3" key={application.applicationId}>
-                <div className="card shadow-sm">
-                  <div className="card-body">
-                    <h5 className="card-title">
-                      Company: {companyNames[application.jobId] || 'Unavailable'}
-                    </h5>
-                    <p className="card-text">
-                      <strong>Annual Salary:</strong> {salary[application.jobId] ? `$${salary[application.jobId].toLocaleString()}` : 'Unknown'}
-                      <br />
-                      <strong>Status:</strong> {application.applicationStatus}
-                      <br />
-                      <strong>Application time:</strong> {application.timeOfApplication}
-                      <br />
-                      <strong>Notes:</strong> {application.notes}
-                    </p>
-                    <Button
-                        variant="danger"
-                        className="float-end"
-                        onClick={() => deleteApplication(application.applicationId)}
-                        disabled={loadingIds[application.applicationId]}
-                    >
-                      {loadingIds[application.applicationId] ? (
-                          <>
-                            <Spinner
-                                as="span"
-                                animation="border"
-                                size="sm"
-                                role="status"
-                                aria-hidden="true"
-                            /> Deleting...
-                          </>
-                      ) : (
-                          "Delete"
-                      )}
-                    </Button>
-                    <button
-                        className="btn btn-primary float-end me-2"
-                        onClick={() => openViewModal(application)}
-                    >
-                      <FaEye className="me-1" /> View
-                    </button>
-                  </div>
+      <div className="row">
+        {applications.length === 0 && !error.applicationError && !error.jobDetailError && (
+          <div className="col-12">
+            <p>No applications found.</p>
+          </div>
+        )}
+        {applications.map((application) => (
+          <div className="col-md-4 mb-4" key={application.applicationId}>
+            <div className="card shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title">
+                  <FaBuilding className="icon" />
+                  {companyNames[application.jobId] || 'Unavailable'}
+                </h5>
+                <p className="card-text">
+                  <strong><FaDollarSign className="icon" /> Annual Salary:</strong> {salary[application.jobId] ? `$${salary[application.jobId].toLocaleString()}` : 'Unknown'}
+                  <br />
+                  <strong><FaLink className='icon' />Status:</strong> {application.applicationStatus.charAt(0).toUpperCase() + application.applicationStatus.slice(1)}
+                  <br />
+                  <strong><FaCalendarAlt className="icon" /> Application Time:</strong> {new Date(application.timeOfApplication).toLocaleDateString()}
+                  <br />
+                  <strong><FaStickyNote className="icon" /> Notes:</strong> {application.notes || 'None'}
+                </p>
+                <div className="d-flex justify-content-end">
+                  <Button
+                    variant="outline-primary"
+                    className="me-2"
+                    onClick={() => openViewModal(application)}
+                  >
+                    <FaEye className="me-1" /> View
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    onClick={() => deleteApplication(application.applicationId)}
+                    disabled={loadingIds[application.applicationId]}
+                  >
+                    {loadingIds[application.applicationId] ? (
+                      <>
+                        <Spinner
+                          as="span"
+                          animation="border"
+                          size="sm"
+                          role="status"
+                          aria-hidden="true"
+                        /> Deleting...
+                      </>
+                    ) : (
+                      "Delete"
+                    )}
+                  </Button>
                 </div>
               </div>
-          ))}
-        </div>
-
-        {/* Custom Modal */}
-        <CustomModal
-            show={showViewModal}
-            handleClose={closeViewModal}
-            job={selectedJob}
-            notes={notes}
-            setNotes={setNotes}
-            setStatus={setSelectedStatus}
-            submitApplication={() => {
-              updateApplicationHandler(selectedApplication, selectedStatus, notes)
-            }}
-            loading={loading}
-            showDropdown={true}
-            dropdownOptions={statuses}
-            selectedStatus={selectedStatus}
-            setSelectedStatus={setSelectedStatus}
-        />
-
-        {/* Custom Toasts */}
-        <CustomToast
-          show={showDeleteToast}
-          message="Application has been deleted successfully."
-          onClose={() => setShowDeleteToast(false)}
-        />
-        <CustomToast
-          show={showUpdateToast}
-          message="Application has been updated successfully."
-          onClose={() => setShowUpdateToast(false)}
-        />
+            </div>
+          </div>
+        ))}
       </div>
+
+      {/* Custom Modal */}
+      <CustomModal
+        show={showViewModal}
+        handleClose={closeViewModal}
+        job={selectedJob}
+        notes={notes}
+        setNotes={setNotes}
+        setStatus={setSelectedStatus}
+        submitApplication={() => {
+          updateApplicationHandler(selectedApplication, selectedStatus, notes)
+        }}
+        loading={loading}
+        showDropdown={true}
+        dropdownOptions={statuses}
+        selectedStatus={selectedStatus}
+        setSelectedStatus={setSelectedStatus}
+      />
+
+      {/* Custom Toasts */}
+      <CustomToast
+        show={showDeleteToast}
+        message="Application has been deleted successfully."
+        onClose={() => setShowDeleteToast(false)}
+      />
+      <CustomToast
+        show={showUpdateToast}
+        message="Application has been updated successfully."
+        onClose={() => setShowUpdateToast(false)}
+      />
+    </div>
   );
 };
 

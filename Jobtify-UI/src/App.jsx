@@ -23,14 +23,14 @@ const App = () => {
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </div>
-      <footer className="footer" style={{
+      {/* <footer className="footer" style={{
           fontSize: '0.8rem',       // 调整字体大小
           padding: '0px',
           paddingTop: '10px',          // 调整内边距
           textAlign: 'center',      // 居中对齐文本
         }}>
         <p>© 2024 Jobtify by Scalable Dynamics(For COMSW 4153 - Cloud Computing). All rights reserved.</p>
-      </footer>
+      </footer> */}
     </Router>
     </GoogleOAuthProvider>
   );

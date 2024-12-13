@@ -67,7 +67,3 @@ h2 {
   height: 250px; /* The height is 400 pixels */
   width: 100%; /* The width is the width of the web page */
 }
-
-.main-content {
-  margin-bottom: 70px; /* 确保内容不被 Footer 遮挡，调整为 Footer 的高度 */
-}

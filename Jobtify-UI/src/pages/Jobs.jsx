@@ -6,7 +6,7 @@ import { Modal, Button, Spinner, Card, Row, Col, Badge } from 'react-bootstrap';
 import { FaMapMarkerAlt, FaDollarSign, FaIndustry, FaBuilding, FaBriefcase, FaStickyNote } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import CustomToast from '../components/CustomToast';
-import '../css/Jobs.css'; // 引入自定义样式
+import '../css/CustomCard.css'; // 引入自定义样式
 import CustomModal from '../components/CustomModal'; // 引入新的模态框组件
 import useWindowWidth from '../hooks/useWindowWidth'; // 引入自定义钩子
 
@@ -205,60 +205,68 @@ const Jobs = () => {
   };
 
   return (
-    <div className="container mt-5">
-      {/* Pagination Controls */}
-      {renderPagination()}
+    <div 
+    style={{
+      display: 'flex',
+      justifyContent: 'center', // 水平居中
+      alignItems: 'center',     // 垂直居中
+      height: '100vh',          // 父容器高度，可根据需要调整
+    }}>
+      <div className="container mt-5">
+        {/* Pagination Controls */}
+        {renderPagination()}
 
-      <br></br>
-      <Row xs={1} md={2} lg={3} className="g-4">
-        {currentJobs.map((job) => (
-          job.publicView && (
-            <Col key={job.jobId}>
-              <Card className="h-100 shadow-sm">
-                <Card.Body className="d-flex flex-column">
-                  <Card.Title className="text-primary">{job.title}</Card.Title>
-                  <Card.Subtitle className="mb-2 text-muted">{job.company}</Card.Subtitle>
-                  <Card.Text className="flex-grow-1">
-                    {job.description.length > 100 ? `${job.description.substring(0, 100)}...` : job.description}
-                  </Card.Text>
-                  <div className="mb-2">
-                    <Badge bg="info" className="me-2">
-                      <FaDollarSign className="me-1" /> ${job.salary.toLocaleString()}
-                    </Badge>
-                    <Badge bg="secondary" className="me-2">
-                      <FaMapMarkerAlt className="me-1" /> {job.location.length > 15 ? `${job.location.substring(0, 15)}...` : job.location}
-                    </Badge>
-                    <Badge bg="warning" text="dark">
-                      <FaIndustry className="me-1" /> {job.industry.length > 10 ? `${job.industry.substring(0, 10)}...` : job.industry}
-                    </Badge>
-                  </div>
-                  <Button variant="outline-primary" onClick={() => openModal(job)} className="mt-auto">
-                    Apply
-                  </Button>
-                </Card.Body>
-              </Card>
-            </Col>
-          )
-        ))}
-      </Row>
+        <br></br>
+        <Row xs={1} md={2} lg={3} className="g-4">
+          {currentJobs.map((job) => (
+            job.publicView && (
+              <Col key={job.jobId}>
+                <Card className="h-100 shadow-sm">
+                  <Card.Body className="d-flex flex-column">
+                    <Card.Title className="text-primary">{job.title}</Card.Title>
+                    <Card.Subtitle className="mb-2 text-muted">{job.company}</Card.Subtitle>
+                    <Card.Text className="flex-grow-1">
+                      {job.description.length > 100 ? `${job.description.substring(0, 100)}...` : job.description}
+                    </Card.Text>
+                    <div className="mb-2">
+                      <Badge bg="info" className="me-2">
+                        <FaDollarSign className="me-1" /> ${job.salary.toLocaleString()}
+                      </Badge>
+                      <Badge bg="secondary" className="me-2">
+                        <FaMapMarkerAlt className="me-1" /> {job.location.length > 15 ? `${job.location.substring(0, 15)}...` : job.location}
+                      </Badge>
+                      <Badge bg="warning" text="dark">
+                        <FaIndustry className="me-1" /> {job.industry.length > 10 ? `${job.industry.substring(0, 10)}...` : job.industry}
+                      </Badge>
+                    </div>
+                    <Button variant="outline-primary" onClick={() => openModal(job)} className="mt-auto">
+                      Apply
+                    </Button>
+                  </Card.Body>
+                </Card>
+              </Col>
+            )
+          ))}
+        </Row>
 
-      <CustomModal
-        show={showModal}
-        handleClose={closeModal}
-        job={selectedJob}
-        notes={notes}
-        setNotes={setNotes}
-        submitApplication={submitApplication}
-        loading={loading}
-      />
+        <CustomModal
+          show={showModal}
+          handleClose={closeModal}
+          job={selectedJob}
+          notes={notes}
+          setNotes={setNotes}
+          submitApplication={submitApplication}
+          loading={loading}
+        />
 
-      {/* Custom Toast */}
-      <CustomToast
-        show={showToast}
-        message="Job has been marked as applied successfully."
-        onClose={() => setShowToast(false)}
-        bg="success"
-      />
+        {/* Custom Toast */}
+        <CustomToast
+          show={showToast}
+          message="Job has been marked as applied successfully."
+          onClose={() => setShowToast(false)}
+          bg="success"
+        />
+      </div>
     </div>
   );
 };

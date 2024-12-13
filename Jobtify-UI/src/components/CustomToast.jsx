@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 
 const CustomToast = ({ show, message, onClose, delay = 3000 }) => {
   return (
-    <ToastContainer className="p-3" style={{ position: 'fixed', bottom: '2rem', right: '1rem', zIndex: 1055 }}>
+    <ToastContainer className="p-3" style={{ position: 'fixed', bottom: '0.5rem', right: '0.5rem', zIndex: 1055 }}>
       <Toast show={show} onClose={onClose} delay={delay} autohide bg={'light'}>
         <Toast.Header
         style={{

@@ -1,0 +1,117 @@
+/* Navbar Container */
+.vertical-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 60px; /* 未展开宽度 */
+  background-color: #1c1c1c;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 保证内容水平居中 */
+  justify-content: flex-start; /* 从顶部开始排列 */
+  padding-top: 20px;
+  transition: width 0.3s ease; /* 平滑过渡 */
+  z-index: 1000;
+  overflow: hidden; /* 隐藏溢出的内容 */
+}
+
+.vertical-navbar:hover {
+  width: 220px; /* 展开宽度 */
+}
+
+/* Brand Section */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  text-decoration: none;
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+.brand-icon {
+  font-size: 1.8rem;
+  color: #fff;
+}
+
+.brand-text {
+  margin-left: 15px;
+  font-size: 1.2rem;
+  display: none; /* 默认隐藏文字 */
+  color: #fff;
+}
+
+.vertical-navbar:hover .brand-text {
+  display: inline-block; /* 悬停时显示文字 */
+}
+
+/* Navigation Links */
+.nav-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px; /* 导航项的间距 */
+  width: 100%;
+}
+
+.nav-link {
+  width: 100%;
+}
+
+.nav-link-content {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 图标垂直居中 */
+  color: #fff;
+  padding: 10px 0;
+  text-decoration: none;
+  position: relative;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.nav-link-content:hover {
+  background-color: #333;
+}
+
+.nav-icon {
+  font-size: 1.5rem;
+  color: #fff;
+  flex-shrink: 0; /* 防止图标被压缩 */
+}
+
+.nav-text {
+  margin-left: 15px;
+  font-size: 1rem;
+  display: none; /* 默认隐藏文字 */
+  color: #fff;
+}
+
+.vertical-navbar:hover .nav-text {
+  display: inline-block; /* 鼠标悬停时显示文字 */
+}
+
+/* Sign Out Button */
+.sign-out-button {
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+.sign-out-button:hover {
+  background-color: #333;
+}
+
+/* Small Screen Support */
+@media (max-width: 768px) {
+  .vertical-navbar {
+    width: 50px;
+  }
+
+  .vertical-navbar:hover {
+    width: 160px;
+  }
+}
