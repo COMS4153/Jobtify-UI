@@ -122,14 +122,13 @@ const ApplicationsPage = () => {
   ];
 
   return (
-    <div className="container mt-5">
-      <h2>Your Applications</h2>
+    <div style={{ backgroundColor: '#000', minHeight: '100vh', width: '80%', margin: '50px auto'}}>
+      <h2 style={{ color: '#fff' }}>Your Applications</h2>
 
       <Button onClick={openAddModal} className="btn btn-primary mb-4 add-application-btn">
         Add Job Application
       </Button>
 
-      {/* Add Application Modal */}
       <AddApplicationModal
         show={showAddModal}
         handleClose={closeAddModal}
@@ -144,7 +143,7 @@ const ApplicationsPage = () => {
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            Filter by Status: {filterStatus}
+            Filter by Status: {filterStatus.toUpperCase()}
           </button>
           <ul className="dropdown-menu">
             {statuses.map((status) => (
@@ -161,46 +160,82 @@ const ApplicationsPage = () => {
         </div>
       </div>
 
-      {/* Error Alerts */}
       {error.applicationError && <div className="alert alert-danger">{error.applicationError}</div>}
       {error.jobDetailError && <div className="alert alert-danger">{error.jobDetailError}</div>}
       {error.applicationDeletionError && <div className="alert alert-danger">{error.applicationDeletionError}</div>}
       {error.applicationUpdateError && <div className="alert alert-danger">{error.applicationUpdateError}</div>}
 
-      <div className="row">
-        {applications.length === 0 && !error.applicationError && !error.jobDetailError && (
-          <div className="col-12">
-            <p>No applications found.</p>
-          </div>
-        )}
-        {applications.map((application) => (
-          <div className="col-md-4 mb-4" key={application.applicationId}>
-            <div className="card shadow-sm">
-              <div className="card-body">
-                <h5 className="card-title">
-                  <FaBuilding className="icon" />
+      <div className="ag-format-container">
+        <div className="ag-courses_box">
+          {applications.length === 0 && !error.applicationError && !error.jobDetailError && (
+            <div style={{ color: '#fff', marginBottom: '20px' }}>No applications found.</div>
+          )}
+          {applications.map((application, index) => (
+            <div className="ag-courses_item" key={application.applicationId}>
+              <div className="ag-courses-item_link" style={{ position: 'relative', zIndex: 2 }}>
+                <div className="ag-courses-item_bg"></div>
+                <div className="ag-courses-item_title" style={{ position: 'relative', zIndex: 3, display: 'flex', alignItems: 'center' }}>
+                  <FaBuilding className="icon" style={{ marginRight: '8px' }} />
                   {companyNames[application.jobId] || 'Unavailable'}
-                </h5>
-                <p className="card-text">
-                  <strong><FaDollarSign className="icon" /> Annual Salary:</strong> {salary[application.jobId] ? `$${salary[application.jobId].toLocaleString()}` : 'Unknown'}
-                  <br />
-                  <strong><FaLink className='icon' />Status:</strong> {application.applicationStatus.charAt(0).toUpperCase() + application.applicationStatus.slice(1)}
-                  <br />
-                  <strong><FaCalendarAlt className="icon" /> Application Time:</strong> {new Date(application.timeOfApplication).toLocaleDateString()}
-                  <br />
-                  <strong><FaStickyNote className="icon" /> Notes:</strong> {application.notes || 'None'}
-                </p>
-                <div className="d-flex justify-content-end">
-                  <Button
-                    variant="outline-primary"
-                    className="me-2"
-                    onClick={() => openViewModal(application)}
+                </div>
+                <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
+                  <strong><FaDollarSign className="icon" style={{ marginRight: '5px' }} /> Annual Salary: </strong>
+                  <span className="ag-courses-text">
+                    {salary[application.jobId] ? `$${salary[application.jobId].toLocaleString()}` : 'Unknown'}
+                  </span>
+                </div>
+                <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
+                  <strong><FaLink className='icon' style={{ marginRight: '5px' }} /> Status: </strong>
+                  <span className="ag-courses-text">
+                    {application.applicationStatus.charAt(0).toUpperCase() + application.applicationStatus.slice(1)}
+                  </span>
+                </div>
+                <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
+                  <strong><FaCalendarAlt className="icon" style={{ marginRight: '5px' }} /> Application Time: </strong>
+                  <span className="ag-courses-text">{new Date(application.timeOfApplication).toLocaleDateString()}</span>
+                </div>
+                <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
+                  <strong><FaStickyNote className="icon" style={{ marginRight: '5px' }} /> Notes: </strong>
+                  <span className="ag-courses-text">{application.notes || 'None'}</span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', position: 'relative', zIndex: 3 }}>
+                  <button
+                    className="ag-courses-item_button"
+                    style={{
+                      backgroundColor: '#007bff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#fff',
+                      padding: '6px 10px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      marginRight: '10px'
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      openViewModal(application);
+                    }}
                   >
-                    <FaEye className="me-1" /> View
-                  </Button>
-                  <Button
-                    variant="outline-danger"
-                    onClick={() => deleteApplication(application.applicationId)}
+                    <FaEye style={{ marginRight: '5px' }} /> Update
+                  </button>
+                  <button
+                    className="ag-courses-item_button"
+                    style={{
+                      backgroundColor: '#dc3545',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#fff',
+                      padding: '6px 10px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      deleteApplication(application.applicationId);
+                    }}
                     disabled={loadingIds[application.applicationId]}
                   >
                     {loadingIds[application.applicationId] ? (
@@ -211,20 +246,20 @@ const ApplicationsPage = () => {
                           size="sm"
                           role="status"
                           aria-hidden="true"
+                          style={{ marginRight: '5px' }}
                         /> Deleting...
                       </>
                     ) : (
                       "Delete"
                     )}
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {/* Custom Modal */}
       <CustomModal
         show={showViewModal}
         handleClose={closeViewModal}
@@ -242,7 +277,6 @@ const ApplicationsPage = () => {
         setSelectedStatus={setSelectedStatus}
       />
 
-      {/* Custom Toasts */}
       <CustomToast
         show={showDeleteToast}
         message="Application has been deleted successfully."

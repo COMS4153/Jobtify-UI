@@ -5,22 +5,25 @@ body {
 }
 
 .ag-format-container {
-  width: 1142px;
+  width: 100%;
   margin: 0 auto;
+  min-width: 1200px;
 }
 
 .ag-courses_box {
   display: flex;
-  align-items: flex-start;
   flex-wrap: wrap;
   padding: 50px 0;
+  align-items: flex-start;
 }
 
 .ag-courses_item {
   flex-basis: calc(33.33333% - 30px);
   margin: 0 15px 30px;
-  overflow: hidden;
   border-radius: 28px;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* 添加平滑动画 */
 }
 
 .ag-courses-item_link {
@@ -30,12 +33,30 @@ body {
   overflow: hidden;
   position: relative;
   text-decoration: none;
+  color: #fff;
+  border-radius: 28px;
 }
 
-.ag-courses-item_link:hover,
-.ag-courses-item_link:hover .ag-courses-item_date {
-  text-decoration: none;
-  color: #FFF;
+/* 悬停时放大和漂浮 */
+.ag-courses_item:hover {
+  transform: translateY(-10px) scale(1.05); /* 上浮并放大 */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* 添加阴影 */
+}
+
+.ag-courses-item_bg {
+  height: 128px;
+  width: 128px;
+  background-color: #f9b234;
+  z-index: 1;
+  position: absolute;
+  top: -75px;
+  right: -75px;
+  border-radius: 50%;
+  /* 初始缩放为1，并从右上角为变换基点 */
+  transform: scale(1);
+  transform-origin: top right;
+  transition: transform 0.5s ease; 
+  z-index: 1;
 }
 
 .ag-courses-item_link:hover .ag-courses-item_bg {
@@ -45,7 +66,6 @@ body {
 .ag-courses-item_title {
   min-height: 87px;
   margin: 0 0 25px;
-  overflow: hidden;
   font-weight: bold;
   font-size: 30px;
   color: #FFF;
@@ -58,28 +78,24 @@ body {
   color: #FFF;
   z-index: 2;
   position: relative;
-  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 .ag-courses-item_date {
   font-weight: bold;
   color: #f9b234;
-  transition: color .5s ease;
+  transition: color 0.5s ease;
 }
 
-.ag-courses-item_bg {
-  height: 128px;
-  width: 128px;
-  background-color: #f9b234;
-  z-index: 1;
-  position: absolute;
-  top: -75px;
-  right: -75px;
-  border-radius: 50%;
-  transition: all .5s ease;
+.ag-courses-text {
+  color: #f9b234;
 }
 
-/* 不同卡片的圆角背景色可以通过 nth-child 调整 */
+.ag-courses-item_link:hover .ag-courses-text {
+  color: #fbfbfb;
+}
+
+/* 不同卡片可通过 nth-child 改变圆形颜色 */
 .ag-courses_item:nth-child(2n) .ag-courses-item_bg {
   background-color: #3ecd5e;
 }
@@ -96,6 +112,24 @@ body {
   background-color: #4c49ea;
 }
 
+.ag-courses-item_title,
+.ag-courses-item_date-box,
+.ag-courses-item_button {
+  z-index: 3;
+  position: relative;
+  color: #fff; /* 确保文字为白色 */
+}
+
+.ag-courses-item_date {
+  color: #f9b234; /* 或者根据需要保持原样 */
+}
+
+.ag-courses-item_button {
+  z-index: 3;
+  position: relative;
+}
+
+/* 响应式 */
 @media only screen and (max-width: 979px) {
   .ag-courses_item {
     flex-basis: calc(50% - 30px);

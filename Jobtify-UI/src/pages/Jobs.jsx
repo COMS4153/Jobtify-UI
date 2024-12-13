@@ -206,67 +206,87 @@ const Jobs = () => {
 
   return (
     <div 
-    style={{
-      display: 'flex',
-      justifyContent: 'center', // 水平居中
-      alignItems: 'center',     // 垂直居中
-      height: '100vh',          // 父容器高度，可根据需要调整
-    }}>
-      <div className="container mt-5">
-        {/* Pagination Controls */}
-        {renderPagination()}
+      style={{
+        backgroundColor: '#000',
+        minHeight: '100vh',
+        padding: '50px 0',
+        width: '80%',
+        margin: '50px auto'
+      }}
+    >
+      {renderPagination()}
 
-        <br></br>
-        <Row xs={1} md={2} lg={3} className="g-4">
-          {currentJobs.map((job) => (
+      <div className="ag-format-container">
+        <div className="ag-courses_box">
+          {currentJobs.map((job, index) =>
             job.publicView && (
-              <Col key={job.jobId}>
-                <Card className="h-100 shadow-sm">
-                  <Card.Body className="d-flex flex-column">
-                    <Card.Title className="text-primary">{job.title}</Card.Title>
-                    <Card.Subtitle className="mb-2 text-muted">{job.company}</Card.Subtitle>
-                    <Card.Text className="flex-grow-1">
+              <div className="ag-courses_item" key={job.jobId}>
+                <div className="ag-courses-item_link" style={{ position: 'relative', zIndex: 2 }}>
+                  <div className="ag-courses-item_bg"></div>
+                  <div className="ag-courses-item_title" style={{ position: 'relative', zIndex: 3 }}>
+                    {job.title}
+                  </div>
+                  <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
+                    <FaMapMarkerAlt style={{ marginRight: '5px' }} />
+                    Location: <span className="ag-courses-text">{job.location.length > 15 ? `${job.location.substring(0, 15)}...` : job.location}</span>
+                  </div>
+                  <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
+                    <FaDollarSign style={{ marginRight: '5px' }} />
+                    Salary: <span className="ag-courses-text">${job.salary.toLocaleString()}</span>
+                  </div>
+                  <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
+                    <FaIndustry style={{ marginRight: '5px' }} />
+                    Industry: <span className="ag-courses-text">{job.industry.length > 10 ? `${job.industry.substring(0, 10)}...` : job.industry}</span>
+                  </div>
+                  <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
+                    Description: <span className="ag-courses-text">
                       {job.description.length > 100 ? `${job.description.substring(0, 100)}...` : job.description}
-                    </Card.Text>
-                    <div className="mb-2">
-                      <Badge bg="info" className="me-2">
-                        <FaDollarSign className="me-1" /> ${job.salary.toLocaleString()}
-                      </Badge>
-                      <Badge bg="secondary" className="me-2">
-                        <FaMapMarkerAlt className="me-1" /> {job.location.length > 15 ? `${job.location.substring(0, 15)}...` : job.location}
-                      </Badge>
-                      <Badge bg="warning" text="dark">
-                        <FaIndustry className="me-1" /> {job.industry.length > 10 ? `${job.industry.substring(0, 10)}...` : job.industry}
-                      </Badge>
-                    </div>
-                    <Button variant="outline-primary" onClick={() => openModal(job)} className="mt-auto">
+                    </span>
+                  </div>
+                  <div style={{ marginTop: '20px', position: 'relative', zIndex: 3, textAlign: 'right' }}>
+                    <button
+                      className="ag-courses-item_button"
+                      style={{
+                        backgroundColor: '#007bff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        padding: '8px 12px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        textDecoration: 'none'
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openModal(job);
+                      }}
+                    >
                       Apply
-                    </Button>
-                  </Card.Body>
-                </Card>
-              </Col>
+                    </button>
+                  </div>
+                </div>
+              </div>
             )
-          ))}
-        </Row>
-
-        <CustomModal
-          show={showModal}
-          handleClose={closeModal}
-          job={selectedJob}
-          notes={notes}
-          setNotes={setNotes}
-          submitApplication={submitApplication}
-          loading={loading}
-        />
-
-        {/* Custom Toast */}
-        <CustomToast
-          show={showToast}
-          message="Job has been marked as applied successfully."
-          onClose={() => setShowToast(false)}
-          bg="success"
-        />
+          )}
+        </div>
       </div>
+
+      <CustomModal
+        show={showModal}
+        handleClose={closeModal}
+        job={selectedJob}
+        notes={notes}
+        setNotes={setNotes}
+        submitApplication={submitApplication}
+        loading={loading}
+      />
+
+      <CustomToast
+        show={showToast}
+        message="Job has been marked as applied successfully."
+        onClose={() => setShowToast(false)}
+        bg="success"
+      />
     </div>
   );
 };
