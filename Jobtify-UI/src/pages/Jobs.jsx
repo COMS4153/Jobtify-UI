@@ -220,31 +220,41 @@ const Jobs = () => {
         <div className="ag-courses_box">
           {currentJobs.map((job, index) =>
             job.publicView && (
-              <div className="ag-courses_item" key={job.jobId}>
+              <div className="ag-courses_item" key={job.jobId}
+              style={{cursor: "pointer"}}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                openModal(job);
+              }}>
                 <div className="ag-courses-item_link" style={{ position: 'relative', zIndex: 2 }}>
                   <div className="ag-courses-item_bg"></div>
                   <div className="ag-courses-item_title" style={{ position: 'relative', zIndex: 3 }}>
-                    {job.title}
+                    { job.title.length > 40 ? `${job.title.substring(0, 40)}...` : job.title }
+                  </div>
+                  <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
+                  <FaBuilding className="icon" style={{ marginRight: '5px' }} />
+                    <span className="ag-courses-text">{ job.company }</span>
                   </div>
                   <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
                     <FaMapMarkerAlt style={{ marginRight: '5px' }} />
-                    Location: <span className="ag-courses-text">{job.location.length > 15 ? `${job.location.substring(0, 15)}...` : job.location}</span>
+                    <span className="ag-courses-text">{ job.location }</span>
                   </div>
                   <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
                     <FaDollarSign style={{ marginRight: '5px' }} />
-                    Salary: <span className="ag-courses-text">${job.salary.toLocaleString()}</span>
+                    <span className="ag-courses-text">${job.salary.toLocaleString()}</span>
                   </div>
                   <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
                     <FaIndustry style={{ marginRight: '5px' }} />
-                    Industry: <span className="ag-courses-text">{job.industry.length > 10 ? `${job.industry.substring(0, 10)}...` : job.industry}</span>
+                    <span className="ag-courses-text">{ job.industry }</span>
                   </div>
                   <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
                     Description: <span className="ag-courses-text">
-                      {job.description.length > 100 ? `${job.description.substring(0, 100)}...` : job.description}
+                      {job.description.length > 90 ? `${job.description.substring(0, 90)}...` : job.description}
                     </span>
                   </div>
                   <div style={{ marginTop: '20px', position: 'relative', zIndex: 3, textAlign: 'right' }}>
-                    <button
+                    {/* <button
                       className="ag-courses-item_button"
                       style={{
                         backgroundColor: '#007bff',
@@ -262,7 +272,7 @@ const Jobs = () => {
                       }}
                     >
                       Apply
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               </div>

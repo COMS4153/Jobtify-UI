@@ -17,9 +17,12 @@ const CustomModal = ({
   setSelectedStatus,
 }) => {
 
+  const [prevNotes, setPrevNotes] = useState("");
+
   useEffect(() => {
     if (show && job) {
       initMap();
+      setPrevNotes(notes);
     }
     return () => {
       map = null;
@@ -89,7 +92,7 @@ const CustomModal = ({
               </div>
               {showDropdown && (<div className="mb-3">
                 <FaStickyNote className="me-2 text-info" />
-                <strong>Notes:</strong> {job.notes}
+                <strong>Notes:</strong> {prevNotes}
               </div>)}
               <a href={job.jobLink} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary mb-3">
                 <FaBriefcase className="me-2" /> Click here to apply!

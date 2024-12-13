@@ -31,7 +31,7 @@ const ApplicationsPage = () => {
   const [error, setError] = useState({});
 
   // Custom hooks
-  const { applications, setApplications, companyNames, setCompanyNames, salary, setSalary, error: fetchApplicationError } = useFetchApplications(userId, filterStatus);
+  const { applications, setApplications, titles, setTitles, companyNames, setCompanyNames, salary, setSalary, error: fetchApplicationError } = useFetchApplications(userId, filterStatus);
   const { selectedJob, setSelectedJob, error: fetchJobDetailError } = useJobDetails(selectedApplication);
   const { deleteApplication, loadingIds, error: applicationDeletionError, showDeleteToast, setShowDeleteToast } = useDeleteApplication(applications, setApplications);
   const { updateApplicationHandler, loading, error: applicationUpdateError, showUpdateToast, setShowUpdateToast } = useUpdateApplication(applications, setApplications, closeViewModal);
@@ -125,38 +125,42 @@ const ApplicationsPage = () => {
     <div style={{ backgroundColor: '#000', minHeight: '100vh', width: '80%', margin: '50px auto'}}>
       <h2 style={{ color: '#fff' }}>Your Applications</h2>
 
-      <Button onClick={openAddModal} className="btn btn-primary mb-4 add-application-btn">
-        Add Job Application
-      </Button>
+      <div className='mt-4 mb-4'
+      style={{ display: "flex", alignItems: "center" }}>
 
-      <AddApplicationModal
-        show={showAddModal}
-        handleClose={closeAddModal}
-        handleAddApplication={addApplication}
-      />
+        <Button onClick={openAddModal} className="btn btn-primary me-4 add-application-btn">
+          Add Job Application
+        </Button>
 
-      <div className="mb-3">
-        <div className="btn-group dropend">
-          <button
-            type="button"
-            className="btn btn-secondary dropdown-toggle"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            Filter by Status: {filterStatus.toUpperCase()}
-          </button>
-          <ul className="dropdown-menu">
-            {statuses.map((status) => (
-              <li key={status}>
-                <button
-                  className="dropdown-item"
-                  onClick={() => setFilterStatus(status)}
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </button>
-              </li>
-            ))}
-          </ul>
+        <AddApplicationModal
+          show={showAddModal}
+          handleClose={closeAddModal}
+          handleAddApplication={addApplication}
+        />
+
+        <div>
+          <div className="btn-group dropend">
+            <button
+              type="button"
+              className="btn btn-outline-warning dropdown-toggle"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              Filter by Status: {filterStatus.toUpperCase()}
+            </button>
+            <ul className="dropdown-menu">
+              {statuses.map((status) => (
+                <li key={status}>
+                  <button
+                    className="dropdown-item"
+                    onClick={() => setFilterStatus(status)}
+                  >
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -171,36 +175,47 @@ const ApplicationsPage = () => {
             <div style={{ color: '#fff', marginBottom: '20px' }}>No applications found.</div>
           )}
           {applications.map((application, index) => (
-            <div className="ag-courses_item" key={application.applicationId}>
+            <div className="ag-courses_item" key={application.applicationId}
+            style={{cursor: "pointer"}}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              openViewModal(application);
+            }}>
               <div className="ag-courses-item_link" style={{ position: 'relative', zIndex: 2 }}>
                 <div className="ag-courses-item_bg"></div>
                 <div className="ag-courses-item_title" style={{ position: 'relative', zIndex: 3, display: 'flex', alignItems: 'center' }}>
-                  <FaBuilding className="icon" style={{ marginRight: '8px' }} />
                   {companyNames[application.jobId] || 'Unavailable'}
                 </div>
                 <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                  <strong><FaDollarSign className="icon" style={{ marginRight: '5px' }} /> Annual Salary: </strong>
+                  <strong><FaBuilding className="icon" style={{ marginRight: '5px' }} /> </strong>
+                  <span className="ag-courses-text">
+                    {titles[application.jobId] ? `${titles[application.jobId].toLocaleString()}` : 'Unknown'}
+                  </span>
+                </div>
+                <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
+                  <strong><FaDollarSign className="icon" style={{ marginRight: '5px' }} /> </strong>
                   <span className="ag-courses-text">
                     {salary[application.jobId] ? `$${salary[application.jobId].toLocaleString()}` : 'Unknown'}
                   </span>
                 </div>
                 <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                  <strong><FaLink className='icon' style={{ marginRight: '5px' }} /> Status: </strong>
+                  <strong><FaLink className='icon' style={{ marginRight: '5px' }} /> </strong>
                   <span className="ag-courses-text">
                     {application.applicationStatus.charAt(0).toUpperCase() + application.applicationStatus.slice(1)}
                   </span>
                 </div>
                 <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                  <strong><FaCalendarAlt className="icon" style={{ marginRight: '5px' }} /> Application Time: </strong>
+                  <strong><FaCalendarAlt className="icon" style={{ marginRight: '5px' }} /> </strong>
                   <span className="ag-courses-text">{new Date(application.timeOfApplication).toLocaleDateString()}</span>
                 </div>
                 <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                  <strong><FaStickyNote className="icon" style={{ marginRight: '5px' }} /> Notes: </strong>
+                  <strong><FaStickyNote className="icon" style={{ marginRight: '5px' }} /> </strong>
                   <span className="ag-courses-text">{application.notes || 'None'}</span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', position: 'relative', zIndex: 3 }}>
-                  <button
+                  {/* <button
                     className="ag-courses-item_button"
                     style={{
                       backgroundColor: '#007bff',
@@ -219,7 +234,7 @@ const ApplicationsPage = () => {
                     }}
                   >
                     <FaEye style={{ marginRight: '5px' }} /> Update
-                  </button>
+                  </button> */}
                   <button
                     className="ag-courses-item_button"
                     style={{

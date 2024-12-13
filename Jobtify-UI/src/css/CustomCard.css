@@ -13,7 +13,7 @@ body {
 .ag-courses_box {
   display: flex;
   flex-wrap: wrap;
-  padding: 50px 0;
+  padding: 20px 0;
   align-items: flex-start;
 }
 

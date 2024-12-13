@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const useFetchApplications = (userId, filterStatus) => {
   const [applications, setApplications] = useState([]);
+  const [titles, setTitles] = useState({});
   const [companyNames, setCompanyNames] = useState({});
   const [salary, setSalary] = useState({});
   const [error, setError] = useState('');
@@ -26,7 +27,7 @@ const useFetchApplications = (userId, filterStatus) => {
         const jobRequests = uniqueJobIds.map((jobId) =>
           axios
             .get(`http://54.90.234.55:8080/api/jobs/${jobId}`)
-            .then((res) => ({ jobId, companyName: res.data.company, salary: res.data.salary }))
+            .then((res) => ({ jobId, title: res.data.title, companyName: res.data.company, salary: res.data.salary }))
             .catch((err) => {
               console.error(`Failed to fetch company for jobId ${jobId}`, err);
               return null;
@@ -44,9 +45,16 @@ const useFetchApplications = (userId, filterStatus) => {
             salariesMapping[data.jobId] = data.salary;
           }
         });
+        const titlesMapping = {};
+        jobData.forEach((data) => {
+          if (data) {
+            titlesMapping[data.jobId] = data.title;
+          }
+        });
 
         setCompanyNames(namesMapping);
         setSalary(salariesMapping);
+        setTitles(titlesMapping)
         setError('');
       } catch (err) {
         if (err.response && err.response.status === 404) {
@@ -63,7 +71,7 @@ const useFetchApplications = (userId, filterStatus) => {
     fetchApplications();
   }, [userId, filterStatus]);
 
-  return { applications, setApplications, companyNames, setCompanyNames, salary, setSalary, error };
+  return { applications, setApplications, titles, setTitles, companyNames, setCompanyNames, salary, setSalary, error };
 };
 
 export default useFetchApplications;
