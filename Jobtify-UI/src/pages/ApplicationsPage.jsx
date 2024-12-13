@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css'; // 引入Bootstrap样式
 import { FaEye } from 'react-icons/fa'; // 引入图标库
 import { Button, Spinner } from 'react-bootstrap';
-import ApplicationViewModal from './ApplicationViewModal'; // 引入新的组件
 import AddApplicationModal from './AddApplicationModal'; // 引入新的组件
 import useFetchApplications from '../hooks/useFetchApplications';
 import useJobDetails from '../hooks/useJobDetails';
@@ -12,6 +11,7 @@ import useDeleteApplication from '../hooks/useDeleteApplication';
 import useAddApplication from '../hooks/useAddApplication';
 import useUpdateApplication from '../hooks/useUpdateApplication';
 import CustomToast from '../components/CustomToast';
+import CustomModal from '../components/CustomModal';
 //import './ApplicationsPage.css';
 
 const ApplicationsPage = () => {
@@ -30,7 +30,7 @@ const ApplicationsPage = () => {
   const [error, setError] = useState({})
 
   // use custom hooks
-  const { applications, setApplications, companyNames, salary, error: fetchApplicationError } = useFetchApplications(userId, filterStatus)
+  const { applications, setApplications, companyNames, setCompanyNames, salary, setSalary, error: fetchApplicationError } = useFetchApplications(userId, filterStatus)
   const { selectedJob, setSelectedJob, error: fetchJobDetailError } = useJobDetails(selectedApplication)
   const { deleteApplication, loadingIds, error: applicationDeletionError, showDeleteToast, setShowDeleteToast } = useDeleteApplication(applications, setApplications)
   const { updateApplicationHandler, loading, error: applicationUpdateError, showUpdateToast, setShowUpdateToast } = useUpdateApplication(applications, setApplications, closeViewModal)
@@ -229,18 +229,22 @@ const ApplicationsPage = () => {
           ))}
         </div>
 
-        {/* Application View Modal */}
-        <ApplicationViewModal
+        {/* Custom Modal */}
+        <CustomModal
             show={showViewModal}
             handleClose={closeViewModal}
-            application={selectedApplication}
             job={selectedJob}
-            selectedStatus={selectedStatus}
-            setSelectedStatus={setSelectedStatus}
             notes={notes}
             setNotes={setNotes}
-            updateApplication={updateApplicationHandler}
+            setStatus={setSelectedStatus}
+            submitApplication={() => {
+              updateApplicationHandler(selectedApplication, selectedStatus, notes)
+            }}
             loading={loading}
+            showDropdown={true}
+            dropdownOptions={statuses}
+            selectedStatus={selectedStatus}
+            setSelectedStatus={setSelectedStatus}
         />
 
         {/* Custom Toasts */}

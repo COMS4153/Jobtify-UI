@@ -63,7 +63,7 @@ const useFetchApplications = (userId, filterStatus) => {
     fetchApplications();
   }, [userId, filterStatus]);
 
-  return { applications, setApplications, companyNames, salary, error };
+  return { applications, setApplications, companyNames, setCompanyNames, salary, setSalary, error };
 };
 
 export default useFetchApplications;

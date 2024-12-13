@@ -1,14 +1,19 @@
+// src/pages/Jobs.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Modal, Button, Spinner } from 'react-bootstrap';
+import { Modal, Button, Spinner, Card, Row, Col, Badge } from 'react-bootstrap';
+import { FaMapMarkerAlt, FaDollarSign, FaIndustry, FaBuilding, FaBriefcase, FaStickyNote } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import CustomToast from '../components/CustomToast';
+import '../css/Jobs.css'; // 引入自定义样式
+import CustomModal from '../components/CustomModal'; // 引入新的模态框组件
+import useWindowWidth from '../hooks/useWindowWidth'; // 引入自定义钩子
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
   const [currentPage, setCurrentPage] = useState(1); // Track current page
-  const [jobsPerPage] = useState(10); // Number of jobs per page
+  const [jobsPerPage, setJobsPerPage] = useState(6); // Number of jobs per page
   const [error, setError] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -18,6 +23,20 @@ const Jobs = () => {
   const navigate = useNavigate();
 
   const userId = localStorage.getItem('UserID');
+  const windowWidth = useWindowWidth(); // 获取当前窗口宽度
+
+  // 动态设置 jobsPerPage
+  useEffect(() => {
+    if (windowWidth >= 1200) {
+      setJobsPerPage(6);
+    } else if (windowWidth >= 992) {
+      setJobsPerPage(4);
+    } else if (windowWidth >= 768) {
+      setJobsPerPage(3);
+    } else {
+      setJobsPerPage(1);
+    }
+  }, [windowWidth]);
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -121,116 +140,124 @@ const Jobs = () => {
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
   const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
+  const totalPages = Math.ceil(jobs.length / jobsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  return (
-    <div className="container mt-5">
-      <h2>Job Listings</h2>
-      {error && <div className="alert alert-danger">{error}</div>}
-      <table className="table table-striped">
-        <thead>
-          <tr>
-            <th>Company</th>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Salary</th>
-            <th>Location</th>
-            <th>Industry</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentJobs.map((job) => (
-            job.publicView && (
-              <tr key={job.jobId}>
-                <td>{job.company}</td>
-                <td>{job.title}</td>
-                <td>{job.description}</td>
-                <td>${job.salary.toLocaleString()}</td>
-                <td>{job.location}</td>
-                <td>{job.industry}</td>
-                <td>
-                  <button className="btn btn-success" onClick={() => openModal(job)}>
-                    Apply
-                  </button>
-                </td>
-              </tr>
-            )
-          ))}
-        </tbody>
-      </table>
+  const renderPagination = () => {
+    const pageNumbers = [];
 
-      {/* Pagination Controls */}
-      <nav>
-        <ul className="pagination justify-content-center">
-          {Array.from({ length: Math.ceil(jobs.length / jobsPerPage) }, (_, index) => (
-            <li key={index + 1} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
-              <button className="page-link" onClick={() => paginate(index + 1)}>
-                {index + 1}
-              </button>
-            </li>
-          ))}
+    for (let number = 1; number <= totalPages; number++) {
+      pageNumbers.push(
+        <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
+          <a
+            className="page-link"
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              paginate(number);
+            }}
+          >
+            {number}
+          </a>
+        </li>
+      );
+    }
+
+    return (
+      <nav aria-label="Page navigation example">
+        <ul className="pagination pagination-lg justify-content-center">
+          {/* Previous Button */}
+          <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+            <a
+              className="page-link"
+              href="#"
+              aria-label="Previous"
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage > 1) paginate(currentPage - 1);
+              }}
+            >
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+
+          {/* Page Numbers */}
+          {pageNumbers}
+
+          {/* Next Button */}
+          <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+            <a
+              className="page-link"
+              href="#"
+              aria-label="Next"
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) paginate(currentPage + 1);
+              }}
+            >
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
         </ul>
       </nav>
+    );
+  };
 
-      <Modal show={showModal} onHide={closeModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Job Details</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedJob && (
-            <>
-              <p><strong>Company:</strong> {selectedJob.company}</p>
-              <p><strong>Title:</strong> {selectedJob.title}</p>
-              <p><strong>Description:</strong> {selectedJob.description}</p>
-              <p><strong>Salary:</strong> ${selectedJob.salary.toLocaleString()}</p>
-              <p><strong>Location:</strong> {selectedJob.location}</p>
-              <div id="map"></div>
-              <p><strong>Industry:</strong> {selectedJob.industry}</p>
-              <a href={selectedJob.jobLink} target="_blank"><strong>Click here to apply!</strong></a>
-              <hr></hr>
-              <div className="form-group">
-                <label><strong>Notes:</strong></label>
-                <textarea
-                  className="form-control"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows="5"
-                  placeholder="Enter your notes here..."
-                ></textarea>
-              </div>
-            </>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={closeModal}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={submitApplication} disabled={loading}>
-            {loading ? (
-              <>
-                <Spinner
-                  as="span"
-                  animation="border"
-                  size="sm"
-                  role="status"
-                  aria-hidden="true"
-                />{" "}
-                Applying...
-              </>
-            ) : (
-              "Confirm Application"
-            )}
-          </Button>
-        </Modal.Footer>
-      </Modal>
+  return (
+    <div className="container mt-5">
+      {/* Pagination Controls */}
+      {renderPagination()}
+
+      <br></br>
+      <Row xs={1} md={2} lg={3} className="g-4">
+        {currentJobs.map((job) => (
+          job.publicView && (
+            <Col key={job.jobId}>
+              <Card className="h-100 shadow-sm">
+                <Card.Body className="d-flex flex-column">
+                  <Card.Title className="text-primary">{job.title}</Card.Title>
+                  <Card.Subtitle className="mb-2 text-muted">{job.company}</Card.Subtitle>
+                  <Card.Text className="flex-grow-1">
+                    {job.description.length > 100 ? `${job.description.substring(0, 100)}...` : job.description}
+                  </Card.Text>
+                  <div className="mb-2">
+                    <Badge bg="info" className="me-2">
+                      <FaDollarSign className="me-1" /> ${job.salary.toLocaleString()}
+                    </Badge>
+                    <Badge bg="secondary" className="me-2">
+                      <FaMapMarkerAlt className="me-1" /> {job.location.length > 15 ? `${job.location.substring(0, 15)}...` : job.location}
+                    </Badge>
+                    <Badge bg="warning" text="dark">
+                      <FaIndustry className="me-1" /> {job.industry.length > 10 ? `${job.industry.substring(0, 10)}...` : job.industry}
+                    </Badge>
+                  </div>
+                  <Button variant="outline-primary" onClick={() => openModal(job)} className="mt-auto">
+                    Apply
+                  </Button>
+                </Card.Body>
+              </Card>
+            </Col>
+          )
+        ))}
+      </Row>
+
+      <CustomModal
+        show={showModal}
+        handleClose={closeModal}
+        job={selectedJob}
+        notes={notes}
+        setNotes={setNotes}
+        submitApplication={submitApplication}
+        loading={loading}
+      />
 
       {/* Custom Toast */}
       <CustomToast
         show={showToast}
         message="Job has been marked as applied successfully."
         onClose={() => setShowToast(false)}
+        bg="success"
       />
     </div>
   );

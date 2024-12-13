@@ -35,6 +35,7 @@ const useUpdateApplication = (applications, setApplications, closeViewModal) => 
   };
 
   const updateApplicationHandler = async (selectedApplication, selectedStatus, notes) => {
+    console.log(selectedApplication)
     setLoading(true);
     await jobApplicationUpdate(selectedApplication, selectedStatus, notes);
     setLoading(false);
