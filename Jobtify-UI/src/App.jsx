@@ -7,7 +7,7 @@ import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import ApplicationsPage from './pages/ApplicationsPage';
 import Jobs from './pages/Jobs';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/Dashboard.jsx';
 
 const App = () => {
   return (

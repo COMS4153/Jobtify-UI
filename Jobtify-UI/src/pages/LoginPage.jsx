@@ -25,6 +25,8 @@ const LoginPage = () => {
             });
 
             localStorage.setItem('UserID', JSON.stringify(response.data.id)); // 保存用户数据
+            localStorage.setItem('UserName', JSON.stringify(response.data.username)); // 保存用户数据
+            localStorage.setItem('UserEmail', JSON.stringify(response.data.email)); // 保存用户数据
             navigate(`/applications`); // 跳转到 applications 页面
         } catch (err) {
             setError('Invalid credentials, please try again.');
