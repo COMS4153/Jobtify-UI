@@ -60,7 +60,7 @@ const CustomModal = ({
   return (
     <Modal show={show} onHide={handleClose} centered size="xl">
       <Modal.Header closeButton>
-        <Modal.Title>Job Details</Modal.Title>
+        <Modal.Title className="w-100 text-center">Job Details</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         {job && (
@@ -130,7 +130,7 @@ const CustomModal = ({
           </Row>
         )}
       </Modal.Body>
-      <Modal.Footer>
+      <Modal.Footer className="justify-content-center">
         <Button variant="outline-secondary" onClick={handleClose}>
           Close
         </Button>
@@ -147,7 +147,7 @@ const CustomModal = ({
               Applying...
             </>
           ) : (
-            "Confirm Application"
+            selectedStatus ? "Save" : "Add Application"
           )}
         </Button>
       </Modal.Footer>

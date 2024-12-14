@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import '../css/Pagination.css'
 
 const PaginationComponent = ({ currentPage, totalPages, paginate }) => {
     const pageNumbers = [];
@@ -24,7 +25,6 @@ const PaginationComponent = ({ currentPage, totalPages, paginate }) => {
     return (
         <nav aria-label="Page navigation example">
             <ul className="pagination pagination-lg justify-content-center">
-                {/* Previous Button */}
                 <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
                     <a
                         className="page-link"

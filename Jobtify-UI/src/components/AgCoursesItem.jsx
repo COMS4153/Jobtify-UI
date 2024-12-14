@@ -1,5 +1,6 @@
+// src/components/AgCoursesItem.jsx
 import React from 'react';
-import { FaBuilding, FaDollarSign, FaLink, FaCalendarAlt, FaStickyNote, FaMapMarkerAlt, FaIndustry } from 'react-icons/fa';
+import { FaBuilding, FaDollarSign, FaLink, FaCalendarAlt, FaStickyNote, FaMapMarkerAlt, FaIndustry, FaBriefcase } from 'react-icons/fa';
 import { Spinner, Button } from 'react-bootstrap';
 import '../css/CustomCard.css';
 
