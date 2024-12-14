@@ -7,6 +7,8 @@ import { FaMapMarkerAlt, FaDollarSign, FaIndustry, FaBuilding, FaBriefcase, FaSt
 import { useNavigate } from 'react-router-dom';
 import CustomToast from '../components/CustomToast';
 import '../css/CustomCard.css'; // 引入自定义样式
+import AgCoursesBox from '../components/AgCourseBox.jsx';
+import AgCoursesItem from '../components/AgCoursesItem.jsx';
 import CustomModal from '../components/CustomModal'; // 引入新的模态框组件
 import useWindowWidth from '../hooks/useWindowWidth'; // 引入自定义钩子
 
@@ -205,99 +207,49 @@ const Jobs = () => {
   };
 
   return (
-    <div 
-      style={{
-        backgroundColor: '#000',
-        minHeight: '100vh',
-        padding: '50px 0',
-        width: '80%',
-        margin: '50px auto'
-      }}
-    >
-      {renderPagination()}
+      <div
+          style={{
+            backgroundColor: '#000',
+            minHeight: '100vh',
+            padding: '50px 0',
+            width: '80%',
+            margin: '50px auto'
+          }}
+      >
+        {renderPagination()}
 
-      <div className="ag-format-container">
-        <div className="ag-courses_box">
-          {currentJobs.map((job, index) =>
-            job.publicView && (
-              <div className="ag-courses_item" key={job.jobId}
-              style={{cursor: "pointer"}}
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                openModal(job);
-              }}>
-                <div className="ag-courses-item_link" style={{ position: 'relative', zIndex: 2 }}>
-                  <div className="ag-courses-item_bg"></div>
-                  <div className="ag-courses-item_title" style={{ position: 'relative', zIndex: 3 }}>
-                    { job.title.length > 40 ? `${job.title.substring(0, 40)}...` : job.title }
-                  </div>
-                  <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                  <FaBuilding className="icon" style={{ marginRight: '5px' }} />
-                    <span className="ag-courses-text">{ job.company }</span>
-                  </div>
-                  <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                    <FaMapMarkerAlt style={{ marginRight: '5px' }} />
-                    <span className="ag-courses-text">{ job.location }</span>
-                  </div>
-                  <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                    <FaDollarSign style={{ marginRight: '5px' }} />
-                    <span className="ag-courses-text">${job.salary.toLocaleString()}</span>
-                  </div>
-                  <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                    <FaIndustry style={{ marginRight: '5px' }} />
-                    <span className="ag-courses-text">{ job.industry }</span>
-                  </div>
-                  <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                    Description: <span className="ag-courses-text">
-                      {job.description.length > 90 ? `${job.description.substring(0, 90)}...` : job.description}
-                    </span>
-                  </div>
-                  <div style={{ marginTop: '20px', position: 'relative', zIndex: 3, textAlign: 'right' }}>
-                    {/* <button
-                      className="ag-courses-item_button"
-                      style={{
-                        backgroundColor: '#007bff',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#fff',
-                        padding: '8px 12px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        textDecoration: 'none'
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openModal(job);
-                      }}
-                    >
-                      Apply
-                    </button> */}
-                  </div>
-                </div>
-              </div>
-            )
+        <AgCoursesBox>
+          {currentJobs.map((job) =>
+                  job.publicView && (
+                      <AgCoursesItem
+                          key={job.jobId}
+                          type="job"
+                          data={job}
+                          title={job.title}
+                          onView={() => openModal(job)}
+                      >
+                      </AgCoursesItem>
+                  )
           )}
-        </div>
+        </AgCoursesBox>
+
+        <CustomModal
+            show={showModal}
+            handleClose={closeModal}
+            job={selectedJob}
+            notes={notes}
+            setNotes={setNotes}
+            submitApplication={submitApplication}
+            loading={loading}
+        />
+
+        <CustomToast
+            show={showToast}
+            message="Job has been marked as applied successfully."
+            onClose={() => setShowToast(false)}
+            bg="success"
+        />
       </div>
-
-      <CustomModal
-        show={showModal}
-        handleClose={closeModal}
-        job={selectedJob}
-        notes={notes}
-        setNotes={setNotes}
-        submitApplication={submitApplication}
-        loading={loading}
-      />
-
-      <CustomToast
-        show={showToast}
-        message="Job has been marked as applied successfully."
-        onClose={() => setShowToast(false)}
-        bg="success"
-      />
-    </div>
   );
 };
 

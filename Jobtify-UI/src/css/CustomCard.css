@@ -55,7 +55,7 @@ body {
   /* 初始缩放为1，并从右上角为变换基点 */
   transform: scale(1);
   transform-origin: top right;
-  transition: transform 0.5s ease; 
+  transition: transform 0.5s ease;
   z-index: 1;
 }
 
@@ -160,4 +160,12 @@ body {
   .ag-courses-item_date-box {
     font-size: 16px;
   }
+}
+
+.custom-input::placeholder {
+  color: #aaa;
+  opacity: 1;
+}
+.custom-input:focus::placeholder {
+  color: #555;
 }

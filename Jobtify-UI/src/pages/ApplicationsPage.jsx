@@ -3,16 +3,19 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap styles
-import { FaEye, FaDollarSign, FaBuilding, FaCalendarAlt, FaStickyNote, FaLink } from 'react-icons/fa'; // Import additional icons
-import { Button, Spinner } from 'react-bootstrap';
 import AddApplicationModal from './AddApplicationModal';
 import useFetchApplications from '../hooks/useFetchApplications';
 import useJobDetails from '../hooks/useJobDetails';
 import useDeleteApplication from '../hooks/useDeleteApplication';
-import useAddApplication from '../hooks/useAddApplication';
 import useUpdateApplication from '../hooks/useUpdateApplication';
 import CustomToast from '../components/CustomToast';
 import CustomModal from '../components/CustomModal';
+import AgCoursesBox from '../components/AgCourseBox.jsx';
+import AgCoursesItem from '../components/AgCoursesItem.jsx';
+import SearchBar from '../components/SearchBar';
+import StatusFilter from '../components/StatusFilter';
+import TimeFilter from '../components/TimeFilter';
+import AddButton from '../components/AddButton';
 import '../css/CustomCard.css'; // Ensure the CSS file is imported
 
 const ApplicationsPage = () => {
@@ -27,6 +30,8 @@ const ApplicationsPage = () => {
   const [notes, setNotes] = useState('');
   const [selectedStatus, setSelectedStatus] = useState("Application Status");
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [searchTerm, setSearchTerm] = useState(''); // 新增搜索关键词状态
+  const [timeFilter, setTimeFilter] = useState('ALL'); // 新增时间过滤状态
   const navigate = useNavigate();
   const [error, setError] = useState({});
 
@@ -49,7 +54,7 @@ const ApplicationsPage = () => {
 
   useEffect(() => {
     setError({});
-  }, [filterStatus]);
+  }, [filterStatus, searchTerm, timeFilter]); // 增加依赖项
 
   const openViewModal = (application) => {
     setSelectedApplication(application);
@@ -121,188 +126,138 @@ const ApplicationsPage = () => {
     'screening'
   ];
 
+  const timeFilters = [
+    'ALL',
+    'LAST_WEEK',
+    'LAST_MONTH',
+    'LAST_YEAR'
+  ];
+
+  const filteredApplications = applications.filter(application => {
+    if (filterStatus !== 'ALL' && application.applicationStatus.toLowerCase() !== filterStatus.toLowerCase()) {
+      return false;
+    }
+
+    if (searchTerm) {
+      const lowerSearch = searchTerm.toLowerCase();
+      const companyName = companyNames[application.jobId] ? companyNames[application.jobId].toLowerCase() : '';
+      const title = titles[application.jobId] ? titles[application.jobId].toLowerCase() : '';
+      if (!companyName.includes(lowerSearch) && !title.includes(lowerSearch)) {
+        return false;
+      }
+    }
+
+    if (timeFilter !== 'ALL') {
+      const applicationDate = new Date(application.timeOfApplication);
+      const now = new Date();
+      switch (timeFilter) {
+        case 'LAST_WEEK':
+          const lastWeek = new Date();
+          lastWeek.setDate(now.getDate() - 7);
+          if (applicationDate < lastWeek) return false;
+          break;
+        case 'LAST_MONTH':
+          const lastMonth = new Date();
+          lastMonth.setMonth(now.getMonth() - 1);
+          if (applicationDate < lastMonth) return false;
+          break;
+        case 'LAST_YEAR':
+          const lastYear = new Date();
+          lastYear.setFullYear(now.getFullYear() - 1);
+          if (applicationDate < lastYear) return false;
+          break;
+        default:
+          break;
+      }
+    }
+
+    return true;
+  });
+
   return (
-    <div style={{ backgroundColor: '#000', minHeight: '100vh', width: '80%', margin: '50px auto'}}>
-      <h2 style={{ color: '#fff' }}>Your Applications</h2>
+      <div style={{backgroundColor: '#000', minHeight: '100vh', width: '80%', margin: '50px auto'}}>
+        <h2 style={{color: '#fff'}}>Your Applications</h2>
 
-      <div className='mt-4 mb-4'
-      style={{ display: "flex", alignItems: "center" }}>
+        <div
+            className="d-flex justify-content-center align-items-center mb-4"
+            style={{gap: "20px", flexWrap: "wrap"}}
+        >
+          <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
 
-        <Button onClick={openAddModal} className="btn btn-primary me-4 add-application-btn">
-          Add Job Application
-        </Button>
+          <StatusFilter
+              filterStatus={filterStatus}
+              setFilterStatus={setFilterStatus}
+              statuses={statuses}
+          />
+
+          <TimeFilter
+              timeFilter={timeFilter}
+              setTimeFilter={setTimeFilter}
+              timeFilters={timeFilters}
+          />
+
+          <AddButton openAddModal={openAddModal} />
+        </div>
 
         <AddApplicationModal
-          show={showAddModal}
-          handleClose={closeAddModal}
-          handleAddApplication={addApplication}
+            show={showAddModal}
+            handleClose={closeAddModal}
+            handleAddApplication={addApplication}
         />
 
-        <div>
-          <div className="btn-group dropend">
-            <button
-              type="button"
-              className="btn btn-outline-warning dropdown-toggle"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              Filter by Status: {filterStatus.toUpperCase()}
-            </button>
-            <ul className="dropdown-menu">
-              {statuses.map((status) => (
-                <li key={status}>
-                  <button
-                    className="dropdown-item"
-                    onClick={() => setFilterStatus(status)}
-                  >
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
+        {Object.values(error).map((errMsg, idx) => errMsg &&
+            <div key={idx} className="alert alert-danger">{errMsg}</div>
+        )}
 
-      {error.applicationError && <div className="alert alert-danger">{error.applicationError}</div>}
-      {error.jobDetailError && <div className="alert alert-danger">{error.jobDetailError}</div>}
-      {error.applicationDeletionError && <div className="alert alert-danger">{error.applicationDeletionError}</div>}
-      {error.applicationUpdateError && <div className="alert alert-danger">{error.applicationUpdateError}</div>}
-
-      <div className="ag-format-container">
-        <div className="ag-courses_box">
-          {applications.length === 0 && !error.applicationError && !error.jobDetailError && (
-            <div style={{ color: '#fff', marginBottom: '20px' }}>No applications found.</div>
+        <AgCoursesBox>
+          {filteredApplications.length === 0 && !error.applicationError && !error.jobDetailError && (
+              <div style={{color: '#fff', marginBottom: '20px'}}>No applications found.</div>
           )}
-          {applications.map((application, index) => (
-            <div className="ag-courses_item" key={application.applicationId}
-            style={{cursor: "pointer"}}
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              openViewModal(application);
-            }}>
-              <div className="ag-courses-item_link" style={{ position: 'relative', zIndex: 2 }}>
-                <div className="ag-courses-item_bg"></div>
-                <div className="ag-courses-item_title" style={{ position: 'relative', zIndex: 3, display: 'flex', alignItems: 'center' }}>
-                  {companyNames[application.jobId] || 'Unavailable'}
-                </div>
-                <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                  <strong><FaBuilding className="icon" style={{ marginRight: '5px' }} /> </strong>
-                  <span className="ag-courses-text">
-                    {titles[application.jobId] ? `${titles[application.jobId].toLocaleString()}` : 'Unknown'}
-                  </span>
-                </div>
-                <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                  <strong><FaDollarSign className="icon" style={{ marginRight: '5px' }} /> </strong>
-                  <span className="ag-courses-text">
-                    {salary[application.jobId] ? `$${salary[application.jobId].toLocaleString()}` : 'Unknown'}
-                  </span>
-                </div>
-                <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                  <strong><FaLink className='icon' style={{ marginRight: '5px' }} /> </strong>
-                  <span className="ag-courses-text">
-                    {application.applicationStatus.charAt(0).toUpperCase() + application.applicationStatus.slice(1)}
-                  </span>
-                </div>
-                <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                  <strong><FaCalendarAlt className="icon" style={{ marginRight: '5px' }} /> </strong>
-                  <span className="ag-courses-text">{new Date(application.timeOfApplication).toLocaleDateString()}</span>
-                </div>
-                <div className="ag-courses-item_date-box" style={{ position: 'relative', zIndex: 3 }}>
-                  <strong><FaStickyNote className="icon" style={{ marginRight: '5px' }} /> </strong>
-                  <span className="ag-courses-text">{application.notes || 'None'}</span>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px', position: 'relative', zIndex: 3 }}>
-                  {/* <button
-                    className="ag-courses-item_button"
-                    style={{
-                      backgroundColor: '#007bff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      color: '#fff',
-                      padding: '6px 10px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold',
-                      marginRight: '10px'
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      openViewModal(application);
-                    }}
-                  >
-                    <FaEye style={{ marginRight: '5px' }} /> Update
-                  </button> */}
-                  <button
-                    className="ag-courses-item_button"
-                    style={{
-                      backgroundColor: '#dc3545',
-                      border: 'none',
-                      borderRadius: '8px',
-                      color: '#fff',
-                      padding: '6px 10px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold'
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      deleteApplication(application.applicationId);
-                    }}
-                    disabled={loadingIds[application.applicationId]}
-                  >
-                    {loadingIds[application.applicationId] ? (
-                      <>
-                        <Spinner
-                          as="span"
-                          animation="border"
-                          size="sm"
-                          role="status"
-                          aria-hidden="true"
-                          style={{ marginRight: '5px' }}
-                        /> Deleting...
-                      </>
-                    ) : (
-                      "Delete"
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
+          {filteredApplications.map((application) => (
+              <AgCoursesItem
+                  key={application.applicationId}
+                  type="application"
+                  companyName={companyNames[application.jobId]}
+                  title={titles[application.jobId]}
+                  salary={salary[application.jobId]}
+                  status={application.applicationStatus}
+                  date={application.timeOfApplication}
+                  notes={application.notes}
+                  onView={() => openViewModal(application)}
+                  onDelete={() => deleteApplication(application.applicationId)}
+                  loadingDelete={loadingIds[application.applicationId]}
+              />
           ))}
-        </div>
+        </AgCoursesBox>
+
+        <CustomModal
+            show={showViewModal}
+            handleClose={closeViewModal}
+            job={selectedJob}
+            notes={notes}
+            setNotes={setNotes}
+            setStatus={setSelectedStatus}
+            submitApplication={() => {
+              updateApplicationHandler(selectedApplication, selectedStatus, notes)
+            }}
+            loading={loading}
+            showDropdown={true}
+            dropdownOptions={statuses}
+            selectedStatus={selectedStatus}
+            setSelectedStatus={setSelectedStatus}
+        />
+
+        <CustomToast
+            show={showDeleteToast}
+            message="Application has been deleted successfully."
+            onClose={() => setShowDeleteToast(false)}
+        />
+        <CustomToast
+            show={showUpdateToast}
+            message="Application has been updated successfully."
+            onClose={() => setShowUpdateToast(false)}
+        />
       </div>
-
-      <CustomModal
-        show={showViewModal}
-        handleClose={closeViewModal}
-        job={selectedJob}
-        notes={notes}
-        setNotes={setNotes}
-        setStatus={setSelectedStatus}
-        submitApplication={() => {
-          updateApplicationHandler(selectedApplication, selectedStatus, notes)
-        }}
-        loading={loading}
-        showDropdown={true}
-        dropdownOptions={statuses}
-        selectedStatus={selectedStatus}
-        setSelectedStatus={setSelectedStatus}
-      />
-
-      <CustomToast
-        show={showDeleteToast}
-        message="Application has been deleted successfully."
-        onClose={() => setShowDeleteToast(false)}
-      />
-      <CustomToast
-        show={showUpdateToast}
-        message="Application has been updated successfully."
-        onClose={() => setShowUpdateToast(false)}
-      />
-    </div>
   );
 };
 
