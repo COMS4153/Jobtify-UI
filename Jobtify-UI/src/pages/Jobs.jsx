@@ -1,16 +1,16 @@
-// src/pages/Jobs.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Modal, Button, Spinner, Card, Row, Col, Badge } from 'react-bootstrap';
-import { FaMapMarkerAlt, FaDollarSign, FaIndustry, FaBuilding, FaBriefcase, FaStickyNote } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import CustomToast from '../components/CustomToast';
-import '../css/CustomCard.css'; // 引入自定义样式
+import '../css/CustomCard.css'; // Import custom styles
 import AgCoursesBox from '../components/AgCourseBox.jsx';
 import AgCoursesItem from '../components/AgCoursesItem.jsx';
-import CustomModal from '../components/CustomModal'; // 引入新的模态框组件
-import useWindowWidth from '../hooks/useWindowWidth'; // 引入自定义钩子
+import CustomModal from '../components/CustomModal'; // Import CustomModal component
+import useWindowWidth from '../hooks/useWindowWidth'; // Import custom hook
+import SearchBar from '../components/SearchBar'; // Import SearchBar component
+import { filterBySearchTerm } from '../utils/filterUtils'; // 导入过滤函数
+import PaginationComponent from '../components/PaginationComponent'; // Import the new Pagination component
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
@@ -23,11 +23,13 @@ const Jobs = () => {
   const [showToast, setShowToast] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
   const userId = localStorage.getItem('UserID');
-  const windowWidth = useWindowWidth(); // 获取当前窗口宽度
+  const windowWidth = useWindowWidth(); // Get current window width
 
-  // 动态设置 jobsPerPage
+  // Add searchTerm state
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Dynamically set jobsPerPage based on window width
   useEffect(() => {
     if (windowWidth >= 1200) {
       setJobsPerPage(6);
@@ -38,8 +40,16 @@ const Jobs = () => {
     } else {
       setJobsPerPage(1);
     }
+    // Reset to first page when jobsPerPage changes
+    setCurrentPage(1);
   }, [windowWidth]);
 
+  // Reset currentPage to 1 when searchTerm changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Fetch jobs from API
   useEffect(() => {
     const fetchJobs = async () => {
       try {
@@ -53,6 +63,7 @@ const Jobs = () => {
     fetchJobs();
   }, []);
 
+  // Initialize map when modal is shown and a job is selected
   useEffect(() => {
     if (showModal && selectedJob) {
       initMap();
@@ -79,12 +90,12 @@ const Jobs = () => {
       const applicationStatus = "applied";
 
       const response = await axios.post(
-        `http://18.118.161.48:8080/api/application/${userId}/${selectedJob.jobId}/applications`,
-        {
-          timeOfApplication,
-          applicationStatus,
-          notes,
-        }
+          `http://18.118.161.48:8080/api/application/${userId}/${selectedJob.jobId}/applications`,
+          {
+            timeOfApplication,
+            applicationStatus,
+            notes,
+          }
       );
 
       if (response.status === 201) {
@@ -134,77 +145,23 @@ const Jobs = () => {
     const marker = new AdvancedMarkerElement({
       map: map,
       position: position,
-      title: "Uluru",
+      title: "Job Location",
     });
   }
+
+  const filteredJobs = filterBySearchTerm(
+      jobs,
+      searchTerm,
+      ['title', 'company']
+  );
 
   // Pagination logic
   const indexOfLastJob = currentPage * jobsPerPage;
   const indexOfFirstJob = indexOfLastJob - jobsPerPage;
-  const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
-  const totalPages = Math.ceil(jobs.length / jobsPerPage);
+  const currentJobs = filteredJobs.slice(indexOfFirstJob, indexOfLastJob);
+  const totalPages = Math.ceil(filteredJobs.length / jobsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const renderPagination = () => {
-    const pageNumbers = [];
-
-    for (let number = 1; number <= totalPages; number++) {
-      pageNumbers.push(
-        <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
-          <a
-            className="page-link"
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              paginate(number);
-            }}
-          >
-            {number}
-          </a>
-        </li>
-      );
-    }
-
-    return (
-      <nav aria-label="Page navigation example">
-        <ul className="pagination pagination-lg justify-content-center">
-          {/* Previous Button */}
-          <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-            <a
-              className="page-link"
-              href="#"
-              aria-label="Previous"
-              onClick={(e) => {
-                e.preventDefault();
-                if (currentPage > 1) paginate(currentPage - 1);
-              }}
-            >
-              <span aria-hidden="true">&laquo;</span>
-            </a>
-          </li>
-
-          {/* Page Numbers */}
-          {pageNumbers}
-
-          {/* Next Button */}
-          <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
-            <a
-              className="page-link"
-              href="#"
-              aria-label="Next"
-              onClick={(e) => {
-                e.preventDefault();
-                if (currentPage < totalPages) paginate(currentPage + 1);
-              }}
-            >
-              <span aria-hidden="true">&raquo;</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    );
-  };
 
   return (
       <div
@@ -216,9 +173,17 @@ const Jobs = () => {
             margin: '50px auto'
           }}
       >
-        {renderPagination()}
+        <div
+            className="d-flex justify-content-center align-items-center mb-4"
+            style={{ gap: "20px", flexWrap: "wrap" }}
+        >
+          <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
 
         <AgCoursesBox>
+          {currentJobs.length === 0 && !error && (
+              <div style={{ color: '#fff', marginBottom: '20px' }}>No jobs found.</div>
+          )}
           {currentJobs.map((job) =>
                   job.publicView && (
                       <AgCoursesItem
@@ -227,11 +192,16 @@ const Jobs = () => {
                           data={job}
                           title={job.title}
                           onView={() => openModal(job)}
-                      >
-                      </AgCoursesItem>
+                      />
                   )
           )}
         </AgCoursesBox>
+
+        <PaginationComponent
+            currentPage={currentPage}
+            totalPages={totalPages}
+            paginate={paginate}
+        />
 
         <CustomModal
             show={showModal}

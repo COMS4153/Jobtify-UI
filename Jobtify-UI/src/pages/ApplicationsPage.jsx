@@ -17,6 +17,7 @@ import StatusFilter from '../components/StatusFilter';
 import TimeFilter from '../components/TimeFilter';
 import AddButton from '../components/AddButton';
 import '../css/CustomCard.css'; // Ensure the CSS file is imported
+import { filterBySearchTerm } from '../utils/filterUtils';
 
 const ApplicationsPage = () => {
   const [userId, setUserId] = useState(() => {
@@ -30,8 +31,8 @@ const ApplicationsPage = () => {
   const [notes, setNotes] = useState('');
   const [selectedStatus, setSelectedStatus] = useState("Application Status");
   const [filterStatus, setFilterStatus] = useState('ALL');
-  const [searchTerm, setSearchTerm] = useState(''); // 新增搜索关键词状态
-  const [timeFilter, setTimeFilter] = useState('ALL'); // 新增时间过滤状态
+  const [searchTerm, setSearchTerm] = useState(''); // Added search term state
+  const [timeFilter, setTimeFilter] = useState('ALL'); // Added time filter state
   const navigate = useNavigate();
   const [error, setError] = useState({});
 
@@ -54,7 +55,7 @@ const ApplicationsPage = () => {
 
   useEffect(() => {
     setError({});
-  }, [filterStatus, searchTerm, timeFilter]); // 增加依赖项
+  }, [filterStatus, searchTerm, timeFilter]); // Added dependencies
 
   const openViewModal = (application) => {
     setSelectedApplication(application);
@@ -133,20 +134,25 @@ const ApplicationsPage = () => {
     'LAST_YEAR'
   ];
 
-  const filteredApplications = applications.filter(application => {
+  // Prepare applications with details
+  const applicationsWithDetails = applications.map(application => ({
+    ...application,
+    title: titles[application.jobId] || '',
+    companyName: companyNames[application.jobId] || '',
+  }));
+
+  // Apply filterBySearchTerm
+  const filteredApplications = filterBySearchTerm(
+      applicationsWithDetails,
+      searchTerm,
+      ['title', 'companyName']
+  ).filter(application => {
+    // Filter by Status
     if (filterStatus !== 'ALL' && application.applicationStatus.toLowerCase() !== filterStatus.toLowerCase()) {
       return false;
     }
 
-    if (searchTerm) {
-      const lowerSearch = searchTerm.toLowerCase();
-      const companyName = companyNames[application.jobId] ? companyNames[application.jobId].toLowerCase() : '';
-      const title = titles[application.jobId] ? titles[application.jobId].toLowerCase() : '';
-      if (!companyName.includes(lowerSearch) && !title.includes(lowerSearch)) {
-        return false;
-      }
-    }
-
+    // Filter by Time
     if (timeFilter !== 'ALL') {
       const applicationDate = new Date(application.timeOfApplication);
       const now = new Date();
@@ -217,8 +223,8 @@ const ApplicationsPage = () => {
               <AgCoursesItem
                   key={application.applicationId}
                   type="application"
-                  companyName={companyNames[application.jobId]}
-                  title={titles[application.jobId]}
+                  companyName={application.companyName} // Updated
+                  title={application.title} // Updated
                   salary={salary[application.jobId]}
                   status={application.applicationStatus}
                   date={application.timeOfApplication}
