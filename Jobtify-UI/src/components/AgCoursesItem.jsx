@@ -50,10 +50,9 @@ const AgCoursesItem = ({
                       zIndex: 3,
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      padding: '10px', // 增加一些间距
+                      padding: '10px',
                   }}
               >
-                  {/* 显示放大的 logo 图片 */}
                   {actualCompanyName && !imgError && (
                       <img
                           src={logoUrl}

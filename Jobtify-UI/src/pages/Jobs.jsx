@@ -168,21 +168,22 @@ const Jobs = () => {
           style={{
             backgroundColor: '#000',
             minHeight: '100vh',
-            padding: '50px 0',
             width: '80%',
             margin: '50px auto'
           }}
       >
+        <h2 style={{color: '#fff', textAlign: 'center', fontSize: 48, padding: 20, fontWeight: "bold"}}>Jobs</h2>
+
         <div
             className="d-flex justify-content-center align-items-center mb-4"
-            style={{ gap: "20px", flexWrap: "wrap" }}
+            style={{gap: "20px", flexWrap: "wrap"}}
         >
-          <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+          <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm}/>
         </div>
 
         <AgCoursesBox>
           {currentJobs.length === 0 && !error && (
-              <div style={{ color: '#fff', marginBottom: '20px' }}>No jobs found.</div>
+              <div style={{color: '#fff', marginBottom: '20px'}}>No jobs found.</div>
           )}
           {currentJobs.map((job) =>
                   job.publicView && (

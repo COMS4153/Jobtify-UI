@@ -182,7 +182,7 @@ const ApplicationsPage = () => {
 
   return (
       <div style={{backgroundColor: '#000', minHeight: '100vh', width: '80%', margin: '50px auto'}}>
-        <h2 style={{color: '#fff'}}>Your Applications</h2>
+        <h2 style={{color: '#fff', textAlign: 'center', fontSize: 48, padding: 50, fontWeight: "bold"}}>Your Applications</h2>
 
         <div
             className="d-flex justify-content-center align-items-center mb-4"
