@@ -1,6 +1,7 @@
 // src/hooks/useFetchApplications.js
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import config from "../config.js";
 
 const useFetchApplications = (userId, filterStatus) => {
   const [applications, setApplications] = useState([]);
@@ -14,7 +15,7 @@ const useFetchApplications = (userId, filterStatus) => {
       if (!userId) return;
 
       try {
-        let url = `http://18.118.161.48:8080/api/application/user/${userId}/applications`;
+        let url = `${config.APPLICATION_API_BASE_URL}/application/user/${userId}/applications`;
         if (filterStatus !== 'ALL') {
           url += `?status=${encodeURIComponent(filterStatus)}`;
         }
@@ -26,7 +27,7 @@ const useFetchApplications = (userId, filterStatus) => {
         const uniqueJobIds = [...new Set(jobIds)]; // 确保唯一的 jobIds 以避免重复请求
         const jobRequests = uniqueJobIds.map((jobId) =>
           axios
-            .get(`http://54.90.234.55:8080/api/jobs/${jobId}`)
+            .get(`${config.JOB_API_BASE_URL}/jobs/${jobId}`)
             .then((res) => ({ jobId, title: res.data.title, companyName: res.data.company, salary: res.data.salary }))
             .catch((err) => {
               console.error(`Failed to fetch company for jobId ${jobId}`, err);

@@ -12,6 +12,7 @@ import {
 } from 'react-icons/fa';
 import { Spinner, Button } from 'react-bootstrap';
 import '../css/CustomCard.css';
+import config from '../config';
 
 const AgCoursesItem = ({
                          type,
@@ -36,7 +37,7 @@ const AgCoursesItem = ({
   let logoUrl = '';
   if (actualCompanyName) {
     const formattedCompanyName = actualCompanyName.toLowerCase().replace(/\s+/g, '-');
-    logoUrl = `https://img.logo.dev/${formattedCompanyName}.com?token=pk_FKqZ0O71T3mXBElVJDN3GA&retina=true`;
+    logoUrl = `${config.LOGO_URL}/${formattedCompanyName}.com?token=${config.LOGO_TOKEN}`;
   }
 
   return (

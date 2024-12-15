@@ -12,6 +12,7 @@ import {
     Legend,
 } from 'chart.js';
 import '../css/CustomCard.css';
+import config from "../config.js";
 
 ChartJS.register(
     CategoryScale,
@@ -58,7 +59,7 @@ const Dashboard = () => {
 
             try {
                 const response = await fetch(
-                    `http://18.118.161.48:8080/api/application/user/${JSON.parse(userId)}/applications`
+                    `${config.APPLICATION_API_BASE_URL}/application/user/${JSON.parse(userId)}/applications`
                 );
                 if (!response.ok) {
                     throw new Error('Failed to fetch applications');

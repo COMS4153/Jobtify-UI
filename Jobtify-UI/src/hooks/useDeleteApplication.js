@@ -1,6 +1,7 @@
 // src/hooks/useDeleteApplication.js
 import { useState } from 'react';
 import axios from 'axios';
+import config from '../config.js'
 
 const useDeleteApplication = (applications, setApplications) => {
   const [loadingIds, setLoadingIds] = useState({});
@@ -10,7 +11,7 @@ const useDeleteApplication = (applications, setApplications) => {
   const deleteApplication = async (applicationId) => {
     setLoadingIds((prev) => ({ ...prev, [applicationId]: true }));
     try {
-      await axios.delete(`http://18.118.161.48:8080/api/application/applications/${applicationId}`);
+      await axios.delete(`${config.APPLICATION_API_BASE_URL}/application/applications/${applicationId}`);
       setApplications(applications.filter((app) => app.applicationId !== applicationId));
       setShowDeleteToast(true);
       setTimeout(() => {

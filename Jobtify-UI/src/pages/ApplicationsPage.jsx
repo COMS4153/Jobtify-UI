@@ -18,6 +18,7 @@ import TimeFilter from '../components/TimeFilter';
 import AddButton from '../components/AddButton';
 import '../css/CustomCard.css'; // Ensure the CSS file is imported
 import { filterBySearchTerm } from '../utils/filterUtils';
+import config from '../config';
 
 const ApplicationsPage = () => {
   const [userId, setUserId] = useState(() => {
@@ -81,7 +82,7 @@ const ApplicationsPage = () => {
 
   const addApplication = async (newApplication) => {
     try {
-      const response = await axios.post(`http://18.118.161.48:8080/api/application/applications`, {
+      const response = await axios.post(`${config.APPLICATION_API_BASE_URL}/application/applications`, {
         userId: userId,
         jobTitle: newApplication.jobTitle,
         company: newApplication.company,
@@ -97,7 +98,7 @@ const ApplicationsPage = () => {
         const jobId = response.data.jobId;
         if (jobId && !companyNames[jobId]) {
           try {
-            const jobRes = await axios.get(`http://54.90.234.55:8080/api/jobs/${jobId}`);
+            const jobRes = await axios.get(`${config.JOB_API_BASE_URL}/jobs/${jobId}`);
             setCompanyNames(prev => ({ ...prev, [jobId]: jobRes.data.company }));
             setSalary(prev => ({ ...prev, [jobId]: jobRes.data.salary }));
           } catch (jobErr) {

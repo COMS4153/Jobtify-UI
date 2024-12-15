@@ -1,6 +1,7 @@
 // src/hooks/useJobDetails.js
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import config from '../config';
 
 const useJobDetails = (selectedApplication) => {
   const [selectedJob, setSelectedJob] = useState(null);
@@ -11,7 +12,7 @@ const useJobDetails = (selectedApplication) => {
       if (!selectedApplication) return;
 
       try {
-        const res = await axios.get(`http://54.90.234.55:8080/api/jobs/${selectedApplication.jobId}`);
+        const res = await axios.get(`${config.JOB_API_BASE_URL}/jobs/${selectedApplication.jobId}`);
         setSelectedJob(res.data);
         setError('');
       } catch (err) {

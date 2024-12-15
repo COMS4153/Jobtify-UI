@@ -10,7 +10,8 @@ import CustomModal from '../components/CustomModal'; // Import CustomModal compo
 import useWindowWidth from '../hooks/useWindowWidth'; // Import custom hook
 import SearchBar from '../components/SearchBar'; // Import SearchBar component
 import { filterBySearchTerm } from '../utils/filterUtils'; // 导入过滤函数
-import PaginationComponent from '../components/PaginationComponent'; // Import the new Pagination component
+import PaginationComponent from '../components/PaginationComponent';
+import config from "../config.js"; // Import the new Pagination component
 
 const Jobs = () => {
   const [jobs, setJobs] = useState([]);
@@ -53,7 +54,7 @@ const Jobs = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await axios.get('http://54.90.234.55:8080/api/jobs?size=100');
+        const response = await axios.get(`${config.JOB_API_BASE_URL}/jobs?size=100`);
         setJobs(response.data.content);
       } catch (err) {
         setError('Error fetching jobs');
@@ -90,7 +91,7 @@ const Jobs = () => {
       const applicationStatus = "applied";
 
       const response = await axios.post(
-          `http://18.118.161.48:8080/api/application/${userId}/${selectedJob.jobId}/applications`,
+          `${config.APPLICATION_API_BASE_URL}/application/${userId}/${selectedJob.jobId}/applications`,
           {
             timeOfApplication,
             applicationStatus,

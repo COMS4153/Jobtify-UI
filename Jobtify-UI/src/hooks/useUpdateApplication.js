@@ -1,6 +1,7 @@
 // src/hooks/useUpdateApplication.js
 import { useState } from 'react';
 import axios from 'axios';
+import config from "../config.js";
 
 const useUpdateApplication = (applications, setApplications, closeViewModal) => {
   const [loading, setLoading] = useState(false);
@@ -13,12 +14,11 @@ const useUpdateApplication = (applications, setApplications, closeViewModal) => 
       const applicationStatus = selectedStatus;
       const encodedNotes = encodeURIComponent(notes);
 
-      const url = `http://18.118.161.48:8080/api/application/applications/${selectedApplication.applicationId}?status=${applicationStatus}&notes=${encodedNotes}&timeOfApplication=${timeOfApplication}`;
+      const url = `${config.APPLICATION_API_BASE_URL}/application/applications/${selectedApplication.applicationId}?status=${applicationStatus}&notes=${encodedNotes}&timeOfApplication=${timeOfApplication}`;
       const response = await axios.put(url);
 
       if (response.status === 200) {
         console.log("Application updated successfully!");
-        // 更新本地状态以立即反映更改
         const updatedApps = applications.map((app) =>
           app.applicationId === selectedApplication.applicationId
             ? { ...app, applicationStatus, notes }

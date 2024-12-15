@@ -6,6 +6,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css'; // 导入样式
 import AuthLayout from '../components/AuthLayout';
 import AuthForm from '../components/AuthForm';
+import config from '../config';
 // import './SignUpPage.css'; // 保留或删除，根据需要
 
 const SignUpPage = () => {
@@ -26,7 +27,7 @@ const SignUpPage = () => {
         }
         try {
             const username = `${firstName} ${lastName}`;
-            const response = await axios.post('http://13.58.61.231:8080/api/users/register', {
+            const response = await axios.post(`${config.USER_API_BASE_URL}/users/register`, {
                 username,
                 email,
                 password,

@@ -6,6 +6,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import jwtDecode from 'jwt-decode';
 import AuthLayout from '../components/AuthLayout';
 import AuthForm from '../components/AuthForm';
+import config from '../config';
 // import './LoginPage.css'; // 保留或删除，根据需要
 
 const LoginPage = () => {
@@ -14,12 +15,10 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    const user_service_url = 'http://13.58.61.231:8080';
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post(`${user_service_url}/api/users/login`, {
+            const response = await axios.post(`${config.USER_API_BASE_URL}/users/login`, {
                 username,
                 password,
             });
@@ -42,7 +41,7 @@ const LoginPage = () => {
             console.log('Google User:', decoded);
 
             // 发送 token 到后端
-            const response = await axios.post(`${user_service_url}/api/users/google-login`, {
+            const response = await axios.post(`${config.USER_API_BASE_URL}/users/google-login`, {
                 idToken,
             });
 

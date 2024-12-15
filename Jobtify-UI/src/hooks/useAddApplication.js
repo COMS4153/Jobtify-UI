@@ -1,6 +1,7 @@
 // src/hooks/useAddApplication.js
 import { useState } from 'react';
 import axios from 'axios';
+import config from '../config.js'
 
 const useAddApplication = (userId, applications, setApplications) => {
   const [error, setError] = useState('');
@@ -9,7 +10,7 @@ const useAddApplication = (userId, applications, setApplications) => {
 
   const addApplication = async (newApplication) => {
     try {
-      const response = await axios.post(`http://18.118.161.48:8080/api/application/applications`, {
+      const response = await axios.post(`${config.APPLICATION_API_BASE_URL}/application/applications`, {
         userId: userId,
         jobTitle: newApplication.jobTitle,
         company: newApplication.company,
@@ -25,7 +26,7 @@ const useAddApplication = (userId, applications, setApplications) => {
         const jobId = response.data.jobId;
         if (jobId && !applications.some(app => app.jobId === jobId)) {
           try {
-            const jobRes = await axios.get(`http://54.90.234.55:8080/api/jobs/${jobId}`);
+            const jobRes = await axios.get(`${config.JOB_API_BASE_URL}/jobs/${jobId}`);
             // 假设存在 setCompanyNames 和 setSalary 的方法
             // 需要在主组件中处理
           } catch (jobErr) {
