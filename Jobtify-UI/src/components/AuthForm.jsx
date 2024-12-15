@@ -20,6 +20,7 @@ const AuthForm = ({
                     {submitButtonText}
                 </button>
             </form>
+            <br/>
             {footer && <div className="footer-links">{footer}</div>}
         </div>
     );
